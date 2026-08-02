@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 100 100" color="#F8F8F6" role="img" aria-labelledby="title desc">
+  <title id="title">TinyPreview — File Stack Search</title>
+  <desc id="desc">A magnifying glass reveals individual files inside a layered stack.</desc>
+  <defs>
+    <linearGradient id="bg" x1="6" y1="4" x2="96" y2="98" gradientUnits="userSpaceOnUse"><stop stop-color="#333333"/><stop offset="0.44" stop-color="#1B1B1B"/><stop offset="1" stop-color="#070707"/></linearGradient>
+    <linearGradient id="front" x1="20" y1="26" x2="68" y2="82" gradientUnits="userSpaceOnUse"><stop stop-color="#FFFFFF"/><stop offset="1" stop-color="#C2C2BF"/></linearGradient>
+    <radialGradient id="sheen" cx="0" cy="0" r="1" gradientTransform="translate(22 12) rotate(47) scale(72)"><stop stop-color="#FFFFFF" stop-opacity="0.12"/><stop offset="1" stop-color="#FFFFFF" stop-opacity="0"/></radialGradient>
+    <clipPath id="icon-shape"><rect width="100" height="100" rx="19.53125"/></clipPath>
+    <filter id="stack" x="-30%" y="-30%" width="175%" height="185%"><feDropShadow dx="0" dy="4" stdDeviation="4" flood-color="#000000" flood-opacity="0.52"/></filter>
+  </defs>
+  <g clip-path="url(#icon-shape)">
+    <rect width="100" height="100" fill="url(#bg)"/><rect width="100" height="100" fill="url(#sheen)"/>
+    <g filter="url(#stack)">
+      <rect x="32" y="14" width="47" height="61" rx="8" fill="currentColor" opacity="0.12" stroke="currentColor" stroke-opacity="0.35" stroke-width="1.7"/>
+      <rect x="24" y="20" width="49" height="63" rx="8" fill="currentColor" opacity="0.24" stroke="currentColor" stroke-opacity="0.52" stroke-width="1.7"/>
+      <rect x="16" y="28" width="51" height="59" rx="8" fill="url(#front)"/>
+      <path d="M28 44H53M28 53H48M28 62H51M28 71H43" stroke="#181818" stroke-width="3" stroke-linecap="round"/>
+      <circle cx="68" cy="47" r="17" fill="#121212" stroke="currentColor" stroke-width="4.2"/>
+      <path d="M80 59L89 68" stroke="currentColor" stroke-width="6" stroke-linecap="round"/>
+      <path d="M61 47L66 52L76 41" fill="none" stroke="currentColor" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"/>
+    </g>
+  </g>
+</svg>

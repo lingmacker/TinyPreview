@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TinyPreview — Monochrome Logo Exploration</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    :root { color-scheme: dark; --ink:#f4f4f1; --muted:#a7a7a2; --line:rgba(255,255,255,.11); --surface:rgba(255,255,255,.055); }
+    html { scroll-behavior: smooth; }
+    body { min-width:320px; color:var(--ink); background:radial-gradient(circle at 18% 0%,#353535 0,transparent 36rem),radial-gradient(circle at 92% 14%,#242424 0,transparent 32rem),#0b0b0b; font-family:Inter,-apple-system,BlinkMacSystemFont,"SF Pro Text",sans-serif; -webkit-font-smoothing:antialiased; }
+    body::before { content:""; position:fixed; inset:0; pointer-events:none; opacity:.035; z-index:9; background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
+    button,a { font:inherit; }
+    .page { width:min(1240px,calc(100% - 40px)); margin:auto; padding:86px 0 70px; }
+    header { max-width:780px; margin:0 auto 70px; text-align:center; }
+    .eyebrow { color:#bdbdb8; font:700 11px/1 ui-monospace,SFMono-Regular,Menlo,monospace; letter-spacing:.22em; text-transform:uppercase; }
+    h1 { margin:19px 0 14px; font-size:clamp(48px,8vw,88px); line-height:.94; letter-spacing:-.055em; }
+    .intro { color:var(--muted); font-size:17px; line-height:1.7; text-wrap:balance; }
+    .specs { display:flex; justify-content:center; flex-wrap:wrap; gap:8px; margin-top:24px; }
+    .specs span { padding:7px 11px; border:1px solid var(--line); border-radius:999px; color:#c5c5c0; background:rgba(255,255,255,.035); font:600 11px/1 ui-monospace,SFMono-Regular,Menlo,monospace; }
+    .grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:22px; }
+    .card { position:relative; min-width:0; padding:23px; border:1px solid var(--line); border-radius:28px; color:inherit; background:var(--surface); cursor:pointer; text-align:left; box-shadow:0 20px 52px rgba(0,0,0,.16); transition:transform .65s cubic-bezier(.16,1,.3,1),border-color .3s,background .3s,box-shadow .65s; backdrop-filter:blur(20px); }
+    .card:hover { transform:translateY(-5px); border-color:rgba(255,255,255,.23); background:rgba(255,255,255,.075); box-shadow:0 30px 70px rgba(0,0,0,.32); }
+    .card[aria-pressed="true"] { border-color:rgba(255,255,255,.62); box-shadow:0 0 0 3px rgba(255,255,255,.07),0 30px 70px rgba(0,0,0,.34); }
+    .card[aria-pressed="true"]::after { content:"SELECTED"; position:absolute; top:18px; right:18px; color:#efefe9; font:700 9px/1 ui-monospace,SFMono-Regular,Menlo,monospace; letter-spacing:.14em; }
+    .canvas { width:min(100%,238px); aspect-ratio:1; margin:14px auto 29px; transition:transform .7s cubic-bezier(.16,1,.3,1); }
+    .card:hover .canvas { transform:scale(1.025); }
+    .canvas img { display:block; width:100%; height:100%; filter:drop-shadow(0 18px 28px rgba(0,0,0,.38)); }
+    .number { color:#aaa9a4; font:700 10px/1 ui-monospace,SFMono-Regular,Menlo,monospace; letter-spacing:.11em; }
+    h2 { margin:10px 0 7px; font-size:21px; letter-spacing:-.025em; }
+    .subtitle { min-height:31px; color:#858580; font:600 10px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace; letter-spacing:.08em; text-transform:uppercase; }
+    .rationale { margin-top:14px; color:#aaa9a5; font-size:13px; line-height:1.65; }
+    .hero { position:relative; overflow:hidden; margin-top:92px; padding:38px; border:1px solid rgba(255,255,255,.12); border-radius:36px; background:linear-gradient(145deg,#efefeb,#c7c7c3 62%,#a7a7a2); color:#111; box-shadow:0 34px 90px rgba(0,0,0,.36); }
+    .hero::before { content:""; position:absolute; width:620px; height:620px; right:-140px; top:-360px; border-radius:50%; background:radial-gradient(circle,rgba(255,255,255,.72),transparent 68%); }
+    .hero-grid { position:relative; display:grid; grid-template-columns:1fr 1.45fr; align-items:center; gap:58px; }
+    .hero-icon { width:min(100%,320px); margin:auto; filter:drop-shadow(0 28px 38px rgba(0,0,0,.3)); transition:transform .7s cubic-bezier(.16,1,.3,1); }
+    .hero-icon:hover { transform:scale(1.025) rotate(-1deg); }
+    .detail-kicker { color:#5a5a56; font:700 10px/1 ui-monospace,SFMono-Regular,Menlo,monospace; letter-spacing:.18em; }
+    .detail-title { margin:14px 0; font-size:clamp(34px,5vw,56px); line-height:1; letter-spacing:-.045em; }
+    .detail-copy { max-width:560px; color:#4d4d49; line-height:1.75; }
+    .actions { display:flex; flex-wrap:wrap; gap:10px; margin-top:25px; }
+    .action { min-height:42px; display:inline-flex; align-items:center; justify-content:center; padding:0 16px; border-radius:12px; border:1px solid rgba(0,0,0,.12); color:#171717; background:rgba(255,255,255,.34); text-decoration:none; font-size:13px; font-weight:700; transition:transform .2s,background .2s; }
+    .action:hover { transform:translateY(-1px); background:rgba(255,255,255,.62); }
+    .action.primary { color:#f5f5f2; background:#151515; }
+    .surface-heading { margin:84px 0 28px; text-align:center; }
+    .surface-heading h3 { font-size:32px; letter-spacing:-.035em; }
+    .surface-heading p { margin-top:8px; color:#969691; }
+    .surfaces { display:grid; grid-template-columns:1.4fr .8fr .8fr; gap:20px; }
+    .surface { min-height:250px; padding:25px; overflow:hidden; border:1px solid var(--line); border-radius:27px; background:rgba(255,255,255,.055); }
+    .surface-label { color:#8f8f89; font:700 10px/1 ui-monospace,SFMono-Regular,Menlo,monospace; letter-spacing:.13em; text-transform:uppercase; }
+    .finder { display:grid; grid-template-columns:105px 1fr; height:184px; margin-top:22px; overflow:hidden; border:1px solid rgba(0,0,0,.1); border-radius:15px; background:#e8e8e5; }
+    .sidebar { padding:15px 10px; background:#d1d1cd; }.row { height:9px; margin-bottom:12px; border-radius:5px; background:#aaa9a4; }.row.active{background:#555552;}
+    .preview { display:flex; align-items:center; justify-content:center; gap:18px; padding:22px; }.preview img{width:78px;filter:drop-shadow(0 9px 14px rgba(0,0,0,.25));}.lines{flex:1}.lines i{display:block;height:8px;max-width:130px;margin-bottom:10px;border-radius:4px;background:#c7c7c3}.lines i:first-child{width:70%;background:#91918c}
+    .light-stage,.dark-stage { display:grid; place-items:center; height:184px; margin-top:22px; border-radius:16px; }.light-stage{background:linear-gradient(145deg,#f4f4f1,#bcbcb8)}.dark-stage{background:linear-gradient(145deg,#222,#050505)}.light-stage img,.dark-stage img{width:104px;filter:drop-shadow(0 14px 18px rgba(0,0,0,.3))}
+    footer { display:flex; justify-content:space-between; gap:20px; margin-top:78px; padding-top:23px; border-top:1px solid var(--line); color:#72726d; font:600 10px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace; letter-spacing:.09em; text-transform:uppercase; }
+    @media(max-width:960px){.grid{grid-template-columns:repeat(2,1fr)}.surfaces{grid-template-columns:1fr 1fr}.surface:first-child{grid-column:1/-1}}
+    @media(max-width:680px){.page{width:min(100% - 24px,560px);padding-top:55px}.grid{grid-template-columns:1fr}.hero-grid{grid-template-columns:1fr;text-align:center}.detail-copy{margin:auto}.actions{justify-content:center}.hero{padding:30px 22px}.surfaces{grid-template-columns:1fr}.surface:first-child{grid-column:auto}footer{flex-direction:column}}
+    @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition-duration:.01ms!important}}
+  </style>
+</head>
+<body>
+<main class="page">
+  <header>
+    <p class="eyebrow">macOS Quick Look enhancement</p>
+    <h1>TinyPreview</h1>
+    <p class="intro">黑白系统图标方向：以放大镜、压缩包和文件为核心，用细微灰黑渐变保持层次与克制。</p>
+    <div class="specs"><span>1024 × 1024</span><span>RADIUS 200 PX</span><span>ZERO OUTER PADDING</span><span>MONOCHROME</span></div>
+  </header>
+  <section class="grid" aria-label="Monochrome logo variants">
+    <button class="card" type="button" aria-pressed="false" data-index="0"><div class="canvas"><img src="monochrome/01-archive-lens.svg" alt="Archive Lens logo"></div><span class="number">01</span><h2>Archive Lens</h2><p class="subtitle">File · Archive · Search</p><p class="rationale">文件从压缩包中显现，放大镜覆盖交界处；三个产品元素最完整，叙事明确。</p></button>
+    <button class="card" type="button" aria-pressed="false" data-index="1"><div class="canvas"><img src="monochrome/02-package-scan.svg" alt="Package Scan logo"></div><span class="number">02</span><h2>Package Scan</h2><p class="subtitle">Package · Content list · Lens</p><p class="rationale">压缩包成为主轮廓，镜片内显示内容清单；结构稳定，缩小后仍能一眼识别。</p></button>
+    <button class="card" type="button" aria-pressed="false" data-index="2"><div class="canvas"><img src="monochrome/03-file-stack-search.svg" alt="File Stack Search logo"></div><span class="number">03</span><h2>File Stack Search</h2><p class="subtitle">Files · Layers · Verified</p><p class="rationale">多层文件与确认标记强调通用预览和可靠识别，整体更偏生产力工具。</p></button>
+    <button class="card" type="button" aria-pressed="true" data-index="3"><div class="canvas"><img src="monochrome/04-zip-focus.svg" alt="Zip Focus logo"></div><span class="number">04 / RECOMMENDED</span><h2>Zip Focus</h2><p class="subtitle">Document · Zipper · Magnifier</p><p class="rationale">文件轮廓、拉链轨道和放大镜合成一个紧凑符号；信息完整但视觉最克制，因此作为主推荐。</p></button>
+    <button class="card" type="button" aria-pressed="false" data-index="4"><div class="canvas"><img src="monochrome/05-archive-folder-peek.svg" alt="Archive Folder Peek logo"></div><span class="number">05</span><h2>Archive Folder Peek</h2><p class="subtitle">Folder · Archive · Quick Look</p><p class="rationale">文件夹与压缩包共用轮廓，镜片内保留“看一眼”；更突出容器内容预览。</p></button>
+    <button class="card" type="button" aria-pressed="false" data-index="5"><div class="canvas"><img src="monochrome/06-document-archive-badge.svg" alt="Document Archive Badge logo"></div><span class="number">06</span><h2>Document Archive Badge</h2><p class="subtitle">Document · Badge · Inspection</p><p class="rationale">文档、内容行与压缩包徽章最具象，适合强调任意文件类型预览。</p></button>
+  </section>
+  <section class="hero" aria-live="polite"><div class="hero-grid"><img id="heroIcon" class="hero-icon" src="monochrome/04-zip-focus.svg" alt="Selected TinyPreview logo"><div><p class="detail-kicker">SELECTED DIRECTION</p><h2 id="detailTitle" class="detail-title">Zip Focus</h2><p id="detailCopy" class="detail-copy">主推荐方案。用文件外框定义预览对象，以拉链轨道表达压缩包，再由放大镜完成 Quick Look 语义。黑白高对比保证小尺寸辨识度，灰黑渐变只负责增加细微深度。</p><div class="actions"><a id="downloadSvg" class="action primary" href="TinyPreview.svg" download>下载主 SVG</a><a id="downloadPng" class="action" href="TinyPreview.png" download>下载 1024 PNG</a><a id="downloadVariant" class="action" href="monochrome/04-zip-focus.svg" download>下载当前方案</a></div></div></div></section>
+  <div class="surface-heading"><h3>Product surfaces</h3><p>在 Finder、浅色与深色 macOS 界面中的实际缩放表现。</p></div>
+  <section class="surfaces" aria-label="Logo in product contexts">
+    <article class="surface"><p class="surface-label">Finder Preview</p><div class="finder"><div class="sidebar"><div class="row active"></div><div class="row"></div><div class="row"></div><div class="row"></div><div class="row"></div></div><div class="preview"><img class="surface-logo" src="monochrome/04-zip-focus.svg" alt=""><div class="lines"><i></i><i></i><i></i><i></i></div></div></div></article>
+    <article class="surface"><p class="surface-label">Light Surface</p><div class="light-stage"><img class="surface-logo" src="monochrome/04-zip-focus.svg" alt=""></div></article>
+    <article class="surface"><p class="surface-label">Dark Surface</p><div class="dark-stage"><img class="surface-logo" src="monochrome/04-zip-focus.svg" alt=""></div></article>
+  </section>
+  <footer><span>TinyPreview visual identity</span><span>Monochrome · 2026</span></footer>
+</main>
+<script>
+  const variants=[
+    {title:"Archive Lens",file:"monochrome/01-archive-lens.svg",copy:"文件、压缩包与放大镜三层叙事最完整；适合希望功能表达优先的方向。"},
+    {title:"Package Scan",file:"monochrome/02-package-scan.svg",copy:"以压缩包为主体，镜片中的三行内容表示只读清单；结构最稳健。"},
+    {title:"File Stack Search",file:"monochrome/03-file-stack-search.svg",copy:"文件层叠表达多格式覆盖，确认符号强调识别成功；生产力工具感更强。"},
+    {title:"Zip Focus",file:"monochrome/04-zip-focus.svg",copy:"主推荐方案。用文件外框定义预览对象，以拉链轨道表达压缩包，再由放大镜完成 Quick Look 语义。黑白高对比保证小尺寸辨识度，灰黑渐变只负责增加细微深度。"},
+    {title:"Archive Folder Peek",file:"monochrome/05-archive-folder-peek.svg",copy:"合并文件夹与压缩包轮廓，镜片内保留预览眼睛；容器预览语义最强。"},
+    {title:"Document Archive Badge",file:"monochrome/06-document-archive-badge.svg",copy:"文档、文本行、压缩包徽章与镜片全部具象呈现，适合功能说明场景。"}
+  ];
+  const cards=[...document.querySelectorAll('.card')],hero=document.querySelector('#heroIcon'),title=document.querySelector('#detailTitle'),copy=document.querySelector('#detailCopy'),variantDownload=document.querySelector('#downloadVariant'),surfaceLogos=[...document.querySelectorAll('.surface-logo')];
+  function selectVariant(index){const item=variants[index];cards.forEach((card,i)=>card.setAttribute('aria-pressed',String(i===index)));hero.src=item.file;title.textContent=item.title;copy.textContent=item.copy;variantDownload.href=item.file;surfaceLogos.forEach(image=>image.src=item.file)}
+  cards.forEach(card=>card.addEventListener('click',()=>selectVariant(Number(card.dataset.index))));
+</script>
+</body>
+</html>

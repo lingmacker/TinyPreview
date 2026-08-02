@@ -1,0 +1,66 @@
+{
+  "fill" : {
+    "automatic-gradient" : "extended-srgb:0.10588,0.10588,0.10588,1.00000"
+  },
+  "groups" : [
+    {
+      "blur-material" : 0.15,
+      "layers" : [
+        {
+          "image-name" : "03 Magnifier.svg",
+          "name" : "Magnifier and Check"
+        }
+      ],
+      "shadow" : {
+        "kind" : "neutral",
+        "opacity" : 0.55
+      },
+      "specular" : true,
+      "translucency" : {
+        "enabled" : true,
+        "value" : 0.12
+      }
+    },
+    {
+      "blur-material" : 0.12,
+      "layers" : [
+        {
+          "image-name" : "02 Document.svg",
+          "name" : "Document"
+        }
+      ],
+      "shadow" : {
+        "kind" : "neutral",
+        "opacity" : 0.42
+      },
+      "specular" : true,
+      "translucency" : {
+        "enabled" : true,
+        "value" : 0.08
+      }
+    },
+    {
+      "blur-material" : 0.3,
+      "layers" : [
+        {
+          "image-name" : "01 Back Files.svg",
+          "name" : "Back Files"
+        }
+      ],
+      "shadow" : {
+        "kind" : "neutral",
+        "opacity" : 0.35
+      },
+      "specular" : true,
+      "translucency" : {
+        "enabled" : true,
+        "value" : 0.38
+      }
+    }
+  ],
+  "supported-platforms" : {
+    "squares" : [
+      "macOS"
+    ]
+  }
+}
