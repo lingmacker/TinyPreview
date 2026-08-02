@@ -46,7 +46,7 @@ final class PreviewViewModel: ObservableObject {
             if language == .markdown {
                 rendered = try? MarkdownRenderer.render(preview.text, darkMode: darkMode)
             } else {
-                rendered = SyntaxHighlighter.highlight(preview.text, language: language, darkMode: darkMode)
+                rendered = SyntaxHighlighter.highlight(preview.text, language: language)
             }
             let elapsed = Date().timeIntervalSince(started)
             DispatchQueue.main.async {

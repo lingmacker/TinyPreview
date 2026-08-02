@@ -32,7 +32,14 @@ struct PreviewRootView: View {
     }
 
     private func textView(_ preview: TextPreview) -> some View {
-        VStack(spacing: 0) {
+        let isSourceCode = preview.language != nil && preview.language != .markdown
+        let attributedText = model.attributedText ?? (
+            isSourceCode
+                ? SyntaxHighlighter.plainCode(preview.text)
+                : SyntaxHighlighter.plainText(preview.text, darkMode: colorScheme == .dark)
+        )
+
+        return VStack(spacing: 0) {
             HStack(spacing: 8) {
                 Image(systemName: preview.language == nil ? "doc.plaintext" : "chevron.left.forwardslash.chevron.right")
                 Text(model.url?.lastPathComponent ?? "文本")
@@ -53,12 +60,10 @@ struct PreviewRootView: View {
             .background(.bar)
 
             SelectableTextView(
-                attributedText: model.attributedText ?? SyntaxHighlighter.plainText(
-                    preview.text,
-                    darkMode: colorScheme == .dark
-                ),
+                attributedText: attributedText,
                 wrapsLines: preview.wrapsLines,
-                showsLineNumbers: preview.language != nil && preview.language != .markdown
+                showsLineNumbers: isSourceCode,
+                style: isSourceCode ? .dracula : .system
             )
         }
     }

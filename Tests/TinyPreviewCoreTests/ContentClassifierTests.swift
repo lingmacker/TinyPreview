@@ -63,6 +63,26 @@ final class ContentClassifierTests: XCTestCase {
         XCTAssertEqual(limits.textBytes, 1 * 1_048_576)
     }
 
+    func testSyntaxHighlighterUsesDraculaPalette() throws {
+        let source = "// note\nlet value: String = \"text\" + 42"
+        let rendered = SyntaxHighlighter.highlight(source, language: .swift)
+        let string = rendered.string as NSString
+
+        func color(of token: String) throws -> NSColor {
+            let location = string.range(of: token).location
+            return try XCTUnwrap(
+                rendered.attribute(.foregroundColor, at: location, effectiveRange: nil) as? NSColor
+            )
+        }
+
+        XCTAssertTrue(try color(of: "// note").isEqual(DraculaTheme.comment))
+        XCTAssertTrue(try color(of: "let").isEqual(DraculaTheme.pink))
+        XCTAssertTrue(try color(of: "value").isEqual(DraculaTheme.foreground))
+        XCTAssertTrue(try color(of: "String").isEqual(DraculaTheme.cyan))
+        XCTAssertTrue(try color(of: "\"text\"").isEqual(DraculaTheme.yellow))
+        XCTAssertTrue(try color(of: "42").isEqual(DraculaTheme.purple))
+    }
+
     func testMarkdownRendererProducesStyledDocument() throws {
         let rendered = try MarkdownRenderer.render(
             "# Heading\n\n- **first**\n- second with `code`\n",

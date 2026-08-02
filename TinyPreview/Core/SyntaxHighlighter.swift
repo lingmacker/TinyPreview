@@ -1,19 +1,34 @@
 import AppKit
 import Foundation
 
+public enum DraculaTheme {
+    public static let foreground = color(0xF8, 0xF8, 0xF2)
+    public static let comment = color(0x62, 0x72, 0xA4)
+    public static let cyan = color(0x8B, 0xE9, 0xFD)
+    public static let green = color(0x50, 0xFA, 0x7B)
+    public static let orange = color(0xFF, 0xB8, 0x6C)
+    public static let pink = color(0xFF, 0x79, 0xC6)
+    public static let purple = color(0xBD, 0x93, 0xF9)
+    public static let red = color(0xFF, 0x55, 0x55)
+    public static let yellow = color(0xF1, 0xFA, 0x8C)
+
+    private static func color(_ red: Int, _ green: Int, _ blue: Int) -> NSColor {
+        NSColor(
+            srgbRed: CGFloat(red) / 255,
+            green: CGFloat(green) / 255,
+            blue: CGFloat(blue) / 255,
+            alpha: 1
+        )
+    }
+}
+
 public enum SyntaxHighlighter {
     public static func highlight(
         _ text: String,
-        language: SourceLanguage,
-        darkMode: Bool
+        language: SourceLanguage
     ) -> NSAttributedString {
-        let theme = Theme(darkMode: darkMode)
-        let paragraph = NSMutableParagraphStyle()
-        paragraph.lineSpacing = 2
-        paragraph.tabStops = stride(from: 1, through: 20, by: 1).map {
-            NSTextTab(textAlignment: .left, location: CGFloat($0 * 28), options: [:])
-        }
-        paragraph.defaultTabInterval = 28
+        let theme = Theme()
+        let paragraph = codeParagraphStyle()
         let result = NSMutableAttributedString(
             string: text,
             attributes: [
@@ -48,6 +63,17 @@ public enum SyntaxHighlighter {
         return result
     }
 
+    public static func plainCode(_ text: String) -> NSAttributedString {
+        NSAttributedString(
+            string: text,
+            attributes: [
+                .font: NSFont.monospacedSystemFont(ofSize: 12.5, weight: .regular),
+                .foregroundColor: DraculaTheme.foreground,
+                .paragraphStyle: codeParagraphStyle()
+            ]
+        )
+    }
+
     public static func plainText(_ text: String, darkMode: Bool) -> NSAttributedString {
         let paragraph = NSMutableParagraphStyle()
         paragraph.lineSpacing = 2
@@ -61,6 +87,16 @@ public enum SyntaxHighlighter {
             ]
         )
     }
+    private static func codeParagraphStyle() -> NSMutableParagraphStyle {
+        let paragraph = NSMutableParagraphStyle()
+        paragraph.lineSpacing = 2
+        paragraph.tabStops = stride(from: 1, through: 20, by: 1).map {
+            NSTextTab(textAlignment: .left, location: CGFloat($0 * 28), options: [:])
+        }
+        paragraph.defaultTabInterval = 28
+        return paragraph
+    }
+
 
     private static func apply(
         pattern: String,
@@ -70,7 +106,7 @@ public enum SyntaxHighlighter {
         protected: inout IndexSet,
         protectsRange: Bool
     ) {
-        guard let regex = try? NSRegularExpression(pattern: pattern, options: [.dotMatchesLineSeparators]) else { return }
+        guard let regex = try? NSRegularExpression(pattern: pattern) else { return }
         for match in regex.matches(in: result.string, range: fullRange) where match.range.length > 0 {
             let indexes = IndexSet(integersIn: match.range.location ..< match.range.location + match.range.length)
             guard protected.intersection(indexes).isEmpty else { continue }
@@ -158,30 +194,12 @@ public enum SyntaxHighlighter {
     }
 
     private struct Theme {
-        let foreground: NSColor
-        let comment: NSColor
-        let string: NSColor
-        let number: NSColor
-        let keyword: NSColor
-        let type: NSColor
-
-        init(darkMode: Bool) {
-            if darkMode {
-                foreground = NSColor(calibratedRed: 0.86, green: 0.87, blue: 0.90, alpha: 1)
-                comment = NSColor(calibratedRed: 0.48, green: 0.58, blue: 0.50, alpha: 1)
-                string = NSColor(calibratedRed: 0.93, green: 0.66, blue: 0.48, alpha: 1)
-                number = NSColor(calibratedRed: 0.47, green: 0.72, blue: 0.95, alpha: 1)
-                keyword = NSColor(calibratedRed: 0.80, green: 0.59, blue: 0.92, alpha: 1)
-                type = NSColor(calibratedRed: 0.43, green: 0.79, blue: 0.77, alpha: 1)
-            } else {
-                foreground = NSColor(calibratedWhite: 0.14, alpha: 1)
-                comment = NSColor(calibratedRed: 0.32, green: 0.48, blue: 0.34, alpha: 1)
-                string = NSColor(calibratedRed: 0.67, green: 0.30, blue: 0.12, alpha: 1)
-                number = NSColor(calibratedRed: 0.12, green: 0.38, blue: 0.72, alpha: 1)
-                keyword = NSColor(calibratedRed: 0.52, green: 0.20, blue: 0.68, alpha: 1)
-                type = NSColor(calibratedRed: 0.06, green: 0.48, blue: 0.47, alpha: 1)
-            }
-        }
+        let foreground = DraculaTheme.foreground
+        let comment = DraculaTheme.comment
+        let string = DraculaTheme.yellow
+        let number = DraculaTheme.purple
+        let keyword = DraculaTheme.pink
+        let type = DraculaTheme.cyan
     }
 }
 

@@ -1,10 +1,28 @@
 import AppKit
 import SwiftUI
 
+struct SelectableTextViewStyle {
+    let backgroundColor: NSColor
+    let rulerBackgroundColor: NSColor
+    let lineNumberColor: NSColor
+
+    static let system = SelectableTextViewStyle(
+        backgroundColor: .textBackgroundColor,
+        rulerBackgroundColor: .controlBackgroundColor,
+        lineNumberColor: .secondaryLabelColor
+    )
+    static let dracula = SelectableTextViewStyle(
+        backgroundColor: .textBackgroundColor,
+        rulerBackgroundColor: .controlBackgroundColor,
+        lineNumberColor: DraculaTheme.comment
+    )
+}
+
 struct SelectableTextView: NSViewRepresentable {
     let attributedText: NSAttributedString
     let wrapsLines: Bool
     let showsLineNumbers: Bool
+    let style: SelectableTextViewStyle
 
     func makeCoordinator() -> Coordinator { Coordinator() }
 
@@ -15,7 +33,7 @@ struct SelectableTextView: NSViewRepresentable {
         scrollView.hasHorizontalScroller = !wrapsLines
         scrollView.autohidesScrollers = true
         scrollView.drawsBackground = true
-        scrollView.backgroundColor = .textBackgroundColor
+        scrollView.backgroundColor = style.backgroundColor
 
         let textView = NSTextView(frame: .zero)
         textView.isEditable = false
@@ -23,7 +41,7 @@ struct SelectableTextView: NSViewRepresentable {
         textView.isRichText = true
         textView.allowsUndo = false
         textView.drawsBackground = true
-        textView.backgroundColor = .textBackgroundColor
+        textView.backgroundColor = style.backgroundColor
         textView.textContainerInset = NSSize(width: 14, height: 12)
         textView.usesFindPanel = false
         textView.isAutomaticLinkDetectionEnabled = false
@@ -39,10 +57,21 @@ struct SelectableTextView: NSViewRepresentable {
 
     func updateNSView(_ scrollView: NSScrollView, context: Context) {
         guard let textView = context.coordinator.textView else { return }
+        applyStyle(to: scrollView, textView: textView, coordinator: context.coordinator)
         scrollView.hasHorizontalScroller = !wrapsLines
         configure(textView, in: scrollView)
         updateText(textView, coordinator: context.coordinator)
         configureRuler(scrollView, textView: textView, coordinator: context.coordinator)
+    }
+
+    private func applyStyle(
+        to scrollView: NSScrollView,
+        textView: NSTextView,
+        coordinator: Coordinator
+    ) {
+        scrollView.backgroundColor = style.backgroundColor
+        textView.backgroundColor = style.backgroundColor
+        coordinator.ruler?.update(style: style)
     }
 
     private func configure(_ textView: NSTextView, in scrollView: NSScrollView) {
@@ -81,7 +110,7 @@ struct SelectableTextView: NSViewRepresentable {
     private func configureRuler(_ scrollView: NSScrollView, textView: NSTextView, coordinator: Coordinator) {
         if showsLineNumbers {
             if coordinator.ruler == nil {
-                coordinator.ruler = LineNumberRulerView(textView: textView)
+                coordinator.ruler = LineNumberRulerView(textView: textView, style: style)
             }
             scrollView.verticalRulerView = coordinator.ruler
             scrollView.hasVerticalRuler = true
@@ -103,9 +132,11 @@ struct SelectableTextView: NSViewRepresentable {
 
 final class LineNumberRulerView: NSRulerView {
     private weak var textView: NSTextView?
+    private var style: SelectableTextViewStyle
     private var lineStarts: [Int] = [0]
 
-    init(textView: NSTextView) {
+    init(textView: NSTextView, style: SelectableTextViewStyle) {
+        self.style = style
         self.textView = textView
         super.init(scrollView: textView.enclosingScrollView, orientation: .verticalRuler)
         clientView = textView
@@ -122,6 +153,11 @@ final class LineNumberRulerView: NSRulerView {
     required init(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
 
     deinit { NotificationCenter.default.removeObserver(self) }
+    func update(style: SelectableTextViewStyle) {
+        self.style = style
+        needsDisplay = true
+    }
+
 
     func updateLineStarts(for text: String) {
         lineStarts = [0]
@@ -142,13 +178,13 @@ final class LineNumberRulerView: NSRulerView {
             let scrollView = textView.enclosingScrollView
         else { return }
 
-        NSColor.controlBackgroundColor.setFill()
+        style.rulerBackgroundColor.setFill()
         bounds.fill()
         let visible = scrollView.contentView.bounds
         let glyphRange = layoutManager.glyphRange(forBoundingRect: visible, in: textContainer)
         let attributes: [NSAttributedString.Key: Any] = [
             .font: NSFont.monospacedDigitSystemFont(ofSize: 10.5, weight: .regular),
-            .foregroundColor: NSColor.secondaryLabelColor
+            .foregroundColor: style.lineNumberColor
         ]
 
         layoutManager.enumerateLineFragments(forGlyphRange: glyphRange) { [weak self] _, usedRect, _, lineGlyphRange, _ in
