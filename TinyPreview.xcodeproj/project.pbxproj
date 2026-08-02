@@ -1,0 +1,120 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		A10000000000000000000001 /* TinyPreviewApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000001 /* TinyPreviewApp.swift */; };
+		A10000000000000000000002 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000002 /* SettingsView.swift */; };
+		A10000000000000000000003 /* SettingsModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000003 /* SettingsModel.swift */; };
+		A20000000000000000000001 /* PreviewViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F20000000000000000000001 /* PreviewViewController.swift */; };
+		A20000000000000000000002 /* PreviewViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = F20000000000000000000002 /* PreviewViewModel.swift */; };
+		A20000000000000000000003 /* PreviewRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F20000000000000000000003 /* PreviewRootView.swift */; };
+		A20000000000000000000004 /* SelectableTextView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F20000000000000000000004 /* SelectableTextView.swift */; };
+		A20000000000000000000005 /* ZoomableImageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F20000000000000000000005 /* ZoomableImageView.swift */; };
+		A30000000000000000000001 /* PreviewModels.swift in App Sources */ = {isa = PBXBuildFile; fileRef = F30000000000000000000001 /* PreviewModels.swift */; };
+		A30000000000000000000002 /* SharedSettings.swift in App Sources */ = {isa = PBXBuildFile; fileRef = F30000000000000000000002 /* SharedSettings.swift */; };
+		A30000000000000000000003 /* ContentClassifier.swift in App Sources */ = {isa = PBXBuildFile; fileRef = F30000000000000000000003 /* ContentClassifier.swift */; };
+		A30000000000000000000004 /* FolderScanner.swift in App Sources */ = {isa = PBXBuildFile; fileRef = F30000000000000000000004 /* FolderScanner.swift */; };
+		A30000000000000000000005 /* ArchiveScanner.swift in App Sources */ = {isa = PBXBuildFile; fileRef = F30000000000000000000005 /* ArchiveScanner.swift */; };
+		A30000000000000000000006 /* ImagePreviewLoader.swift in App Sources */ = {isa = PBXBuildFile; fileRef = F30000000000000000000006 /* ImagePreviewLoader.swift */; };
+		A30000000000000000000007 /* PreviewLoader.swift in App Sources */ = {isa = PBXBuildFile; fileRef = F30000000000000000000007 /* PreviewLoader.swift */; };
+		A30000000000000000000008 /* SyntaxHighlighter.swift in App Sources */ = {isa = PBXBuildFile; fileRef = F30000000000000000000008 /* SyntaxHighlighter.swift */; };
+		A40000000000000000000001 /* PreviewModels.swift in Extension Sources */ = {isa = PBXBuildFile; fileRef = F30000000000000000000001 /* PreviewModels.swift */; };
+		A40000000000000000000002 /* SharedSettings.swift in Extension Sources */ = {isa = PBXBuildFile; fileRef = F30000000000000000000002 /* SharedSettings.swift */; };
+		A40000000000000000000003 /* ContentClassifier.swift in Extension Sources */ = {isa = PBXBuildFile; fileRef = F30000000000000000000003 /* ContentClassifier.swift */; };
+		A40000000000000000000004 /* FolderScanner.swift in Extension Sources */ = {isa = PBXBuildFile; fileRef = F30000000000000000000004 /* FolderScanner.swift */; };
+		A40000000000000000000005 /* ArchiveScanner.swift in Extension Sources */ = {isa = PBXBuildFile; fileRef = F30000000000000000000005 /* ArchiveScanner.swift */; };
+		A40000000000000000000006 /* ImagePreviewLoader.swift in Extension Sources */ = {isa = PBXBuildFile; fileRef = F30000000000000000000006 /* ImagePreviewLoader.swift */; };
+		A40000000000000000000007 /* PreviewLoader.swift in Extension Sources */ = {isa = PBXBuildFile; fileRef = F30000000000000000000007 /* PreviewLoader.swift */; };
+		A40000000000000000000008 /* SyntaxHighlighter.swift in Extension Sources */ = {isa = PBXBuildFile; fileRef = F30000000000000000000008 /* SyntaxHighlighter.swift */; };
+		A50000000000000000000001 /* TinyPreviewQuickLook.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = P20000000000000000000001 /* TinyPreviewQuickLook.appex */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		C10000000000000000000001 = {isa = PBXContainerItemProxy; containerPortal = PR0000000000000000000001 /* Project object */; proxyType = 1; remoteGlobalIDString = T20000000000000000000001; remoteInfo = TinyPreviewQuickLook; };
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		B10000000000000000000004 /* Embed App Extensions */ = {isa = PBXCopyFilesBuildPhase; buildActionMask = 2147483647; dstPath = ""; dstSubfolderSpec = 13; files = (A50000000000000000000001 /* TinyPreviewQuickLook.appex in Embed App Extensions */, ); name = "Embed App Extensions"; runOnlyForDeploymentPostprocessing = 0; };
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		F10000000000000000000001 /* TinyPreviewApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TinyPreviewApp.swift; sourceTree = "<group>"; };
+		F10000000000000000000002 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		F10000000000000000000003 /* SettingsModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsModel.swift; sourceTree = "<group>"; };
+		F20000000000000000000001 /* PreviewViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewViewController.swift; sourceTree = "<group>"; };
+		F20000000000000000000002 /* PreviewViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewViewModel.swift; sourceTree = "<group>"; };
+		F20000000000000000000003 /* PreviewRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewRootView.swift; sourceTree = "<group>"; };
+		F20000000000000000000004 /* SelectableTextView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SelectableTextView.swift; sourceTree = "<group>"; };
+		F20000000000000000000005 /* ZoomableImageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZoomableImageView.swift; sourceTree = "<group>"; };
+		F20000000000000000000006 /* QuickLook-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "QuickLook-Info.plist"; sourceTree = "<group>"; };
+		F30000000000000000000001 /* PreviewModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewModels.swift; sourceTree = "<group>"; };
+		F30000000000000000000002 /* SharedSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedSettings.swift; sourceTree = "<group>"; };
+		F30000000000000000000003 /* ContentClassifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentClassifier.swift; sourceTree = "<group>"; };
+		F30000000000000000000004 /* FolderScanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FolderScanner.swift; sourceTree = "<group>"; };
+		F30000000000000000000005 /* ArchiveScanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArchiveScanner.swift; sourceTree = "<group>"; };
+		F30000000000000000000006 /* ImagePreviewLoader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImagePreviewLoader.swift; sourceTree = "<group>"; };
+		F30000000000000000000007 /* PreviewLoader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewLoader.swift; sourceTree = "<group>"; };
+		F30000000000000000000008 /* SyntaxHighlighter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyntaxHighlighter.swift; sourceTree = "<group>"; };
+		P10000000000000000000001 /* TinyPreview.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TinyPreview.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		P20000000000000000000001 /* TinyPreviewQuickLook.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = TinyPreviewQuickLook.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		B10000000000000000000002 = {isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
+		B20000000000000000000002 = {isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		G00000000000000000000001 = {isa = PBXGroup; children = (G50000000000000000000001 /* TinyPreview */, G40000000000000000000001 /* Products */, ); sourceTree = "<group>"; };
+		G50000000000000000000001 /* TinyPreview */ = {isa = PBXGroup; path = TinyPreview; sourceTree = "<group>"; children = (G10000000000000000000001 /* App */, G30000000000000000000001 /* Core */, G20000000000000000000001 /* QuickLook */, G70000000000000000000001 /* Support */, ); };
+		G10000000000000000000001 /* App */ = {isa = PBXGroup; path = App; sourceTree = "<group>"; children = (F10000000000000000000001, F10000000000000000000002, F10000000000000000000003, ); };
+		G30000000000000000000001 /* Core */ = {isa = PBXGroup; path = Core; sourceTree = "<group>"; children = (F30000000000000000000001, F30000000000000000000002, F30000000000000000000003, F30000000000000000000004, F30000000000000000000005, F30000000000000000000006, F30000000000000000000007, F30000000000000000000008, ); };
+		G20000000000000000000001 /* QuickLook */ = {isa = PBXGroup; path = QuickLook; sourceTree = "<group>"; children = (F20000000000000000000001, F20000000000000000000002, F20000000000000000000003, F20000000000000000000004, F20000000000000000000005, ); };
+		G70000000000000000000001 /* Support */ = {isa = PBXGroup; path = Support; sourceTree = "<group>"; children = (F20000000000000000000006, ); };
+		G40000000000000000000001 /* Products */ = {isa = PBXGroup; name = Products; sourceTree = "<group>"; children = (P10000000000000000000001, P20000000000000000000001, ); };
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		T10000000000000000000001 /* TinyPreview */ = {isa = PBXNativeTarget; buildConfigurationList = CL10000000000000000000001; buildPhases = (B10000000000000000000001, B10000000000000000000002, B10000000000000000000003, B10000000000000000000004, ); buildRules = (); dependencies = (D10000000000000000000001, ); name = TinyPreview; productName = TinyPreview; productReference = P10000000000000000000001; productType = "com.apple.product-type.application"; };
+		T20000000000000000000001 /* TinyPreviewQuickLook */ = {isa = PBXNativeTarget; buildConfigurationList = CL20000000000000000000001; buildPhases = (B20000000000000000000001, B20000000000000000000002, B20000000000000000000003, ); buildRules = (); dependencies = (); name = TinyPreviewQuickLook; productName = TinyPreviewQuickLook; productReference = P20000000000000000000001; productType = "com.apple.product-type.app-extension"; };
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		PR0000000000000000000001 /* Project object */ = {isa = PBXProject; attributes = {BuildIndependentTargetsInParallel = 1; LastSwiftUpdateCheck = 2700; LastUpgradeCheck = 2700; TargetAttributes = {T10000000000000000000001 = {CreatedOnToolsVersion = 27.0; }; T20000000000000000000001 = {CreatedOnToolsVersion = 27.0; }; }; }; buildConfigurationList = CL00000000000000000000001; compatibilityVersion = "Xcode 14.0"; developmentRegion = zh_CN; hasScannedForEncodings = 0; knownRegions = (Base, zh_CN, ); mainGroup = G00000000000000000000001; productRefGroup = G40000000000000000000001; projectDirPath = ""; projectRoot = ""; targets = (T10000000000000000000001, T20000000000000000000001, ); };
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		B10000000000000000000003 = {isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
+		B20000000000000000000003 = {isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		B10000000000000000000001 = {isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (A10000000000000000000001, A10000000000000000000002, A10000000000000000000003, A30000000000000000000001, A30000000000000000000002, A30000000000000000000003, A30000000000000000000004, A30000000000000000000005, A30000000000000000000006, A30000000000000000000007, A30000000000000000000008, ); runOnlyForDeploymentPostprocessing = 0; };
+		B20000000000000000000001 = {isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (A20000000000000000000001, A20000000000000000000002, A20000000000000000000003, A20000000000000000000004, A20000000000000000000005, A40000000000000000000001, A40000000000000000000002, A40000000000000000000003, A40000000000000000000004, A40000000000000000000005, A40000000000000000000006, A40000000000000000000007, A40000000000000000000008, ); runOnlyForDeploymentPostprocessing = 0; };
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		D10000000000000000000001 = {isa = PBXTargetDependency; target = T20000000000000000000001; targetProxy = C10000000000000000000001; };
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		BC0000000000000000000001 /* Debug */ = {isa = XCBuildConfiguration; buildSettings = {ALWAYS_SEARCH_USER_PATHS = NO; CLANG_ENABLE_MODULES = YES; CLANG_ENABLE_OBJC_ARC = YES; COPY_PHASE_STRIP = NO; DEBUG_INFORMATION_FORMAT = dwarf; ENABLE_TESTABILITY = YES; GCC_C_LANGUAGE_STANDARD = gnu17; GCC_OPTIMIZATION_LEVEL = 0; MACOSX_DEPLOYMENT_TARGET = 26.0; ONLY_ACTIVE_ARCH = YES; SDKROOT = macosx; SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)"; SWIFT_OPTIMIZATION_LEVEL = "-Onone"; SWIFT_VERSION = 5.0; }; name = Debug; };
+		BC0000000000000000000002 /* Release */ = {isa = XCBuildConfiguration; buildSettings = {ALWAYS_SEARCH_USER_PATHS = NO; CLANG_ENABLE_MODULES = YES; CLANG_ENABLE_OBJC_ARC = YES; COPY_PHASE_STRIP = NO; DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym"; ENABLE_NS_ASSERTIONS = NO; GCC_C_LANGUAGE_STANDARD = gnu17; MACOSX_DEPLOYMENT_TARGET = 26.0; ONLY_ACTIVE_ARCH = NO; SDKROOT = macosx; SWIFT_COMPILATION_MODE = wholemodule; SWIFT_OPTIMIZATION_LEVEL = "-O"; SWIFT_VERSION = 5.0; }; name = Release; };
+		BC1000000000000000000001 /* App Debug */ = {isa = XCBuildConfiguration; buildSettings = {ARCHS = arm64; CODE_SIGN_IDENTITY = "-"; CODE_SIGN_STYLE = Manual; COMBINE_HIDPI_IMAGES = YES; CURRENT_PROJECT_VERSION = 1; GENERATE_INFOPLIST_FILE = YES; INFOPLIST_KEY_CFBundleDisplayName = TinyPreview; INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities"; INFOPLIST_KEY_NSHumanReadableCopyright = "Copyright © 2026 TinyPreview contributors."; INFOPLIST_KEY_NSPrincipalClass = NSApplication; LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks"; MARKETING_VERSION = 1.0; OTHER_LDFLAGS = "$(inherited) -larchive"; PRODUCT_BUNDLE_IDENTIFIER = com.lingmacker.TinyPreview; PRODUCT_NAME = TinyPreview; SWIFT_EMIT_LOC_STRINGS = YES; }; name = Debug; };
+		BC1000000000000000000002 /* App Release */ = {isa = XCBuildConfiguration; buildSettings = {ARCHS = arm64; CODE_SIGN_IDENTITY = "-"; CODE_SIGN_STYLE = Manual; COMBINE_HIDPI_IMAGES = YES; CURRENT_PROJECT_VERSION = 1; GENERATE_INFOPLIST_FILE = YES; INFOPLIST_KEY_CFBundleDisplayName = TinyPreview; INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities"; INFOPLIST_KEY_NSHumanReadableCopyright = "Copyright © 2026 TinyPreview contributors."; INFOPLIST_KEY_NSPrincipalClass = NSApplication; LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks"; MARKETING_VERSION = 1.0; OTHER_LDFLAGS = "$(inherited) -larchive"; PRODUCT_BUNDLE_IDENTIFIER = com.lingmacker.TinyPreview; PRODUCT_NAME = TinyPreview; SWIFT_EMIT_LOC_STRINGS = YES; }; name = Release; };
+		BC2000000000000000000001 /* Extension Debug */ = {isa = XCBuildConfiguration; buildSettings = {APPLICATION_EXTENSION_API_ONLY = YES; ARCHS = arm64; CODE_SIGN_IDENTITY = "-"; CODE_SIGN_STYLE = Manual; CURRENT_PROJECT_VERSION = 1; ENABLE_APP_SANDBOX = YES; ENABLE_USER_SELECTED_FILES = readonly; GENERATE_INFOPLIST_FILE = NO; INFOPLIST_FILE = "TinyPreview/Support/QuickLook-Info.plist"; LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @executable_path/../../../../Frameworks"; MARKETING_VERSION = 1.0; OTHER_LDFLAGS = "$(inherited) -larchive"; PRODUCT_BUNDLE_IDENTIFIER = com.lingmacker.TinyPreview.QuickLook; PRODUCT_NAME = TinyPreviewQuickLook; SKIP_INSTALL = YES; SWIFT_EMIT_LOC_STRINGS = YES; }; name = Debug; };
+		BC2000000000000000000002 /* Extension Release */ = {isa = XCBuildConfiguration; buildSettings = {APPLICATION_EXTENSION_API_ONLY = YES; ARCHS = arm64; CODE_SIGN_IDENTITY = "-"; CODE_SIGN_STYLE = Manual; CURRENT_PROJECT_VERSION = 1; ENABLE_APP_SANDBOX = YES; ENABLE_USER_SELECTED_FILES = readonly; GENERATE_INFOPLIST_FILE = NO; INFOPLIST_FILE = "TinyPreview/Support/QuickLook-Info.plist"; LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @executable_path/../../../../Frameworks"; MARKETING_VERSION = 1.0; OTHER_LDFLAGS = "$(inherited) -larchive"; PRODUCT_BUNDLE_IDENTIFIER = com.lingmacker.TinyPreview.QuickLook; PRODUCT_NAME = TinyPreviewQuickLook; SKIP_INSTALL = YES; SWIFT_EMIT_LOC_STRINGS = YES; }; name = Release; };
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		CL00000000000000000000001 = {isa = XCConfigurationList; buildConfigurations = (BC0000000000000000000001, BC0000000000000000000002, ); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
+		CL10000000000000000000001 = {isa = XCConfigurationList; buildConfigurations = (BC1000000000000000000001, BC1000000000000000000002, ); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
+		CL20000000000000000000001 = {isa = XCConfigurationList; buildConfigurations = (BC2000000000000000000001, BC2000000000000000000002, ); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
+/* End XCConfigurationList section */
+	};
+	rootObject = PR0000000000000000000001 /* Project object */;
+}
