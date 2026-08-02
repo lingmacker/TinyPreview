@@ -62,6 +62,17 @@ make build \
   DEVELOPMENT_TEAM=TEAMID
 ```
 
+## 发布
+
+推送 `v<主版本>.<次版本>.<修订版本>` 标签会触发 `.github/workflows/release.yml`。工作流使用 Xcode 27 运行测试、构建 Apple Silicon Release App，并上传 ZIP 与 SHA-256 校验文件到对应的 GitHub Release。
+
+```sh
+git tag v1.0.0
+git push origin v1.0.0
+```
+
+自动发布的 App 使用 ad-hoc 签名，未经过 Developer ID 签名和公证；首次打开时 macOS 可能要求用户在系统安全设置中确认。
+
 可通过 `INSTALL_DIR` 修改安装目录：
 
 ```sh

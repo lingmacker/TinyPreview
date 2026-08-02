@@ -1,0 +1,116 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v[0-9]+.[0-9]+.[0-9]+"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: Build and publish
+    runs-on: xcode-27
+    permissions:
+      contents: write
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Resolve version
+        id: version
+        env:
+          TAG_NAME: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          version="${TAG_NAME#v}"
+          if [[ ! "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Unsupported release tag: $TAG_NAME" >&2
+            exit 1
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+      - name: Show toolchain
+        run: |
+          sw_vers
+          xcodebuild -version
+          xcode-select -p
+
+      - name: Run tests
+        run: make test
+
+      - name: Build release app
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+          BUILD_NUMBER: ${{ github.run_number }}
+          DERIVED_DATA: ${{ runner.temp }}/TinyPreviewDerivedData
+        run: |
+          make build \
+            CONFIGURATION=Release \
+            DERIVED_DATA="$DERIVED_DATA" \
+            DESTINATION="platform=macOS,arch=arm64" \
+            CODE_SIGN_STYLE=Manual \
+            CODE_SIGN_IDENTITY="-" \
+            DEVELOPMENT_TEAM="" \
+            MARKETING_VERSION="$VERSION" \
+            CURRENT_PROJECT_VERSION="$BUILD_NUMBER"
+
+      - name: Verify release app
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+          DERIVED_DATA: ${{ runner.temp }}/TinyPreviewDerivedData
+        run: |
+          set -euo pipefail
+          app="$DERIVED_DATA/Build/Products/Release/TinyPreview.app"
+          test -d "$app"
+          actual_version="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$app/Contents/Info.plist")"
+          if [[ "$actual_version" != "$VERSION" ]]; then
+            echo "Expected version $VERSION, found $actual_version" >&2
+            exit 1
+          fi
+          codesign --verify --deep --strict --verbose=2 "$app"
+
+      - name: Package release assets
+        id: package
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+          DERIVED_DATA: ${{ runner.temp }}/TinyPreviewDerivedData
+          DIST_DIR: ${{ runner.temp }}/dist
+        run: |
+          set -euo pipefail
+          app="$DERIVED_DATA/Build/Products/Release/TinyPreview.app"
+          archive="TinyPreview-$VERSION-macos-arm64.zip"
+          mkdir -p "$DIST_DIR"
+          ditto -c -k --sequesterRsrc --keepParent "$app" "$DIST_DIR/$archive"
+          cd "$DIST_DIR"
+          shasum -a 256 "$archive" > "$archive.sha256"
+          echo "archive=$DIST_DIR/$archive" >> "$GITHUB_OUTPUT"
+          echo "checksum=$DIST_DIR/$archive.sha256" >> "$GITHUB_OUTPUT"
+
+      - name: Upload workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: TinyPreview-${{ steps.version.outputs.version }}-macos-arm64
+          path: ${{ runner.temp }}/dist/*
+          if-no-files-found: error
+
+      - name: Publish GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.version.outputs.version }}
+          ARCHIVE_PATH: ${{ steps.package.outputs.archive }}
+          CHECKSUM_PATH: ${{ steps.package.outputs.checksum }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" \
+            "$ARCHIVE_PATH" \
+            "$CHECKSUM_PATH" \
+            --repo "$GITHUB_REPOSITORY" \
+            --verify-tag \
+            --title "TinyPreview $VERSION" \
+            --generate-notes
