@@ -113,7 +113,7 @@ public struct TextPreview: Sendable {
     public let encoding: UnicodeTextEncoding
     public let language: SourceLanguage?
 
-    public var wrapsLines: Bool { language == nil }
+    public var wrapsLines: Bool { language == nil || language == .markdown }
 }
 
 public struct ImagePreview: @unchecked Sendable {

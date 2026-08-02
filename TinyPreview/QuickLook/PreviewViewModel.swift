@@ -42,12 +42,17 @@ final class PreviewViewModel: ObservableObject {
         let darkMode = NSApp.effectiveAppearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua
         DispatchQueue.global(qos: .userInitiated).async { [weak self] in
             let started = Date()
-            let highlighted = SyntaxHighlighter.highlight(preview.text, language: language, darkMode: darkMode)
+            let rendered: NSAttributedString?
+            if language == .markdown {
+                rendered = try? MarkdownRenderer.render(preview.text, darkMode: darkMode)
+            } else {
+                rendered = SyntaxHighlighter.highlight(preview.text, language: language, darkMode: darkMode)
+            }
             let elapsed = Date().timeIntervalSince(started)
             DispatchQueue.main.async {
                 guard let self, self.generation == token else { return }
-                if elapsed <= SafetyBudget.standard.maximumDuration {
-                    self.attributedText = highlighted
+                if let rendered, elapsed <= SafetyBudget.standard.maximumDuration {
+                    self.attributedText = rendered
                     self.highlightStatus = .ready
                 } else {
                     self.attributedText = nil

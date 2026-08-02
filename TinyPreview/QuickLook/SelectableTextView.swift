@@ -69,9 +69,11 @@ struct SelectableTextView: NSViewRepresentable {
     }
 
     private func updateText(_ textView: NSTextView, coordinator: Coordinator) {
-        let hash = attributedText.hash
-        guard coordinator.lastHash != hash else { return }
-        coordinator.lastHash = hash
+        if let previous = coordinator.lastAttributedText,
+           previous.isEqual(to: attributedText) {
+            return
+        }
+        coordinator.lastAttributedText = attributedText
         textView.textStorage?.setAttributedString(attributedText)
         coordinator.ruler?.updateLineStarts(for: attributedText.string)
     }
@@ -95,7 +97,7 @@ struct SelectableTextView: NSViewRepresentable {
     final class Coordinator {
         weak var textView: NSTextView?
         var ruler: LineNumberRulerView?
-        var lastHash: Int?
+        var lastAttributedText: NSAttributedString?
     }
 }
 

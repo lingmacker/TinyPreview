@@ -75,6 +75,18 @@ final class PreviewLoaderTests: XCTestCase {
         XCTAssertEqual(SharedSettings.load(), .defaults)
     }
 
+    func testTypeScriptSourceLoadsAsHighlightedText() throws {
+        let url = temporaryURL(extension: "ts")
+        try Data("interface User { name: string }\nconst user: User = { name: \"Tiny\" }\n".utf8).write(to: url)
+        defer { try? FileManager.default.removeItem(at: url) }
+
+        guard case .text(let preview) = PreviewLoader.load(url) else {
+            return XCTFail("Expected a TypeScript text preview")
+        }
+        XCTAssertEqual(preview.language, .typescript)
+        XCTAssertFalse(preview.wrapsLines)
+    }
+
     private func temporaryURL(extension ext: String) -> URL {
         FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString).appendingPathExtension(ext)
     }

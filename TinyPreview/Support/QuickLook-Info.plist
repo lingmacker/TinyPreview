@@ -22,6 +22,39 @@
     <string>1</string>
     <key>LSMinimumSystemVersion</key>
     <string>26.0</string>
+    <key>UTExportedTypeDeclarations</key>
+    <array>
+        <dict>
+            <key>UTTypeIdentifier</key>
+            <string>com.lingmacker.tinypreview.source-code</string>
+            <key>UTTypeDescription</key>
+            <string>TinyPreview source code</string>
+            <key>UTTypeConformsTo</key>
+            <array>
+                <string>public.source-code</string>
+            </array>
+            <key>UTTypeTagSpecification</key>
+            <dict>
+                <key>public.filename-extension</key>
+                <array>
+                    <string>rs</string>
+                    <string>go</string>
+                    <string>pyw</string>
+                    <string>kt</string>
+                    <string>kts</string>
+                    <string>cjs</string>
+                    <string>jsx</string>
+                    <string>ts</string>
+                    <string>tsx</string>
+                    <string>mts</string>
+                    <string>cts</string>
+                    <string>fish</string>
+                    <string>jsonc</string>
+                    <string>mdown</string>
+                </array>
+            </dict>
+        </dict>
+    </array>
     <key>NSExtension</key>
     <dict>
         <key>NSExtensionAttributes</key>
@@ -31,6 +64,29 @@
                 <string>public.folder</string>
                 <string>public.plain-text</string>
                 <string>public.source-code</string>
+                <string>com.lingmacker.tinypreview.source-code</string>
+                <string>public.swift-source</string>
+                <string>public.objective-c-source</string>
+                <string>public.objective-c-plus-plus-source</string>
+                <string>public.c-source</string>
+                <string>public.c-header</string>
+                <string>public.c-plus-plus-source</string>
+                <string>public.c-plus-plus-header</string>
+                <string>public.python-script</string>
+                <string>public.ruby-script</string>
+                <string>com.sun.java-source</string>
+                <string>com.netscape.javascript-source</string>
+                <string>com.microsoft.typescript</string>
+                <string>public.css</string>
+                <string>public.shell-script</string>
+                <string>public.bash-script</string>
+                <string>public.zsh-script</string>
+                <string>public.yaml</string>
+                <string>public.toml</string>
+                <string>public.xhtml</string>
+                <string>org.iso.sql</string>
+                <string>net.daringfireball.markdown</string>
+                <string>public.mpeg-2-transport-stream</string>
                 <string>public.script</string>
                 <string>public.json</string>
                 <string>public.xml</string>

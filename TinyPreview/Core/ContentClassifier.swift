@@ -124,7 +124,7 @@ public enum SourceLanguageDetector {
         "java": .java,
         "kt": .kotlin, "kts": .kotlin,
         "js": .javascript, "mjs": .javascript, "cjs": .javascript, "jsx": .javascript,
-        "ts": .typescript, "tsx": .typescript,
+        "ts": .typescript, "tsx": .typescript, "mts": .typescript, "cts": .typescript,
         "html": .html, "htm": .html,
         "css": .css,
         "sh": .shell, "bash": .shell, "zsh": .shell, "fish": .shell,

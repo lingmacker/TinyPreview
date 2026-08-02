@@ -43,7 +43,7 @@ struct PreviewRootView: View {
                     .font(.caption)
                     .foregroundStyle(.secondary)
                 if model.highlightStatus == .unavailable {
-                    Label("高亮不可用", systemImage: "exclamationmark.triangle")
+                    Label(preview.language == .markdown ? "渲染不可用" : "高亮不可用", systemImage: "exclamationmark.triangle")
                         .font(.caption)
                         .foregroundStyle(.orange)
                 }
@@ -58,7 +58,7 @@ struct PreviewRootView: View {
                     darkMode: colorScheme == .dark
                 ),
                 wrapsLines: preview.wrapsLines,
-                showsLineNumbers: preview.language != nil
+                showsLineNumbers: preview.language != nil && preview.language != .markdown
             )
         }
     }

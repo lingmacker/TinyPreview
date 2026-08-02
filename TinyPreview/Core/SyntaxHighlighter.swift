@@ -184,3 +184,247 @@ public enum SyntaxHighlighter {
         }
     }
 }
+
+public enum MarkdownRenderer {
+    public static func render(_ source: String, darkMode: Bool) throws -> NSAttributedString {
+        let parsed = try AttributedString(
+            markdown: source,
+            options: .init(interpretedSyntax: .full)
+        )
+        let theme = Theme(darkMode: darkMode)
+        let result = NSMutableAttributedString()
+        var activeBlockID: Int?
+        var activeListContext: ListContext?
+        var appendedBlock = false
+
+        for run in parsed.runs {
+            let components = run.presentationIntent?.components ?? []
+            let block = blockStyle(from: components)
+            let blockID = components.first?.identity ?? 0
+            let listContext = block.listContext
+
+            if activeBlockID != blockID {
+                if appendedBlock {
+                    let staysInList = activeListContext != nil && activeListContext == listContext
+                    appendLineBreaks(staysInList ? 1 : 2, to: result, theme: theme)
+                }
+                if let prefix = block.prefix {
+                    result.append(NSAttributedString(
+                        string: prefix,
+                        attributes: attributes(for: nil, block: block, theme: theme)
+                    ))
+                }
+                activeBlockID = blockID
+                activeListContext = listContext
+                appendedBlock = true
+            }
+
+            let text = String(parsed[run.range].characters)
+            result.append(NSAttributedString(
+                string: text,
+                attributes: attributes(
+                    for: run.inlinePresentationIntent,
+                    link: run.link,
+                    block: block,
+                    theme: theme
+                )
+            ))
+        }
+
+        if appendedBlock {
+            appendLineBreaks(1, to: result, theme: theme)
+        }
+        return result
+    }
+
+    private static func blockStyle(
+        from components: [PresentationIntent.IntentType]
+    ) -> BlockStyle {
+        guard let primary = components.first else { return .paragraph }
+        switch primary.kind {
+        case .header(let level):
+            return .heading(level)
+        case .codeBlock:
+            return .codeBlock
+        case .thematicBreak:
+            return .thematicBreak
+        default:
+            break
+        }
+
+        var ordered: Bool?
+        var ordinal = 1
+        var containerID: Int?
+        var depth = 0
+        var quoted = false
+        for component in components {
+            switch component.kind {
+            case .orderedList:
+                ordered = ordered ?? true
+                containerID = containerID ?? component.identity
+                depth += 1
+            case .unorderedList:
+                ordered = ordered ?? false
+                containerID = containerID ?? component.identity
+                depth += 1
+            case .listItem(let value):
+                ordinal = value
+            case .blockQuote:
+                quoted = true
+            default:
+                break
+            }
+        }
+        if let ordered, let containerID {
+            return .listItem(
+                ordered: ordered,
+                ordinal: ordinal,
+                depth: max(1, depth),
+                containerID: containerID
+            )
+        }
+        if quoted {
+            return .quote
+        }
+        return .paragraph
+    }
+
+    private static func attributes(
+        for inline: InlinePresentationIntent?,
+        link: URL? = nil,
+        block: BlockStyle,
+        theme: Theme
+    ) -> [NSAttributedString.Key: Any] {
+        var font = block.font
+        if inline?.contains(.code) == true {
+            font = NSFont.monospacedSystemFont(ofSize: block.codeFontSize, weight: .regular)
+        } else {
+            if inline?.contains(.stronglyEmphasized) == true {
+                font = NSFontManager.shared.convert(font, toHaveTrait: .boldFontMask)
+            }
+            if inline?.contains(.emphasized) == true {
+                font = NSFontManager.shared.convert(font, toHaveTrait: .italicFontMask)
+            }
+        }
+
+        var attributes: [NSAttributedString.Key: Any] = [
+            .font: font,
+            .foregroundColor: link == nil ? theme.foreground : theme.link,
+            .paragraphStyle: block.paragraphStyle
+        ]
+        if inline?.contains(.code) == true {
+            attributes[.backgroundColor] = theme.codeBackground
+        }
+        if inline?.contains(.strikethrough) == true {
+            attributes[.strikethroughStyle] = NSUnderlineStyle.single.rawValue
+        }
+        if let link {
+            attributes[.link] = link
+            attributes[.underlineStyle] = NSUnderlineStyle.single.rawValue
+        }
+        return attributes
+    }
+
+    private static func appendLineBreaks(
+        _ count: Int,
+        to result: NSMutableAttributedString,
+        theme: Theme
+    ) {
+        let existing = result.string.reversed().prefix { $0 == "\n" }.count
+        guard existing < count else { return }
+        result.append(NSAttributedString(
+            string: String(repeating: "\n", count: count - existing),
+            attributes: attributes(for: nil, block: .paragraph, theme: theme)
+        ))
+    }
+
+    private struct ListContext: Equatable {
+        let containerID: Int
+        let depth: Int
+    }
+
+    private enum BlockStyle {
+        case heading(Int)
+        case paragraph
+        case listItem(ordered: Bool, ordinal: Int, depth: Int, containerID: Int)
+        case quote
+        case codeBlock
+        case thematicBreak
+
+        var prefix: String? {
+            switch self {
+            case .listItem(let ordered, let ordinal, let depth, _):
+                let indentation = String(repeating: "    ", count: max(0, depth - 1))
+                return indentation + (ordered ? "\(ordinal). " : "• ")
+            case .quote:
+                return "▎ "
+            case .thematicBreak:
+                return "────────────────────────"
+            default:
+                return nil
+            }
+        }
+
+        var listContext: ListContext? {
+            guard case .listItem(_, _, let depth, let containerID) = self else { return nil }
+            return ListContext(containerID: containerID, depth: depth)
+        }
+
+        var font: NSFont {
+            switch self {
+            case .heading(let level):
+                let sizes: [CGFloat] = [28, 24, 20, 18, 16, 15]
+                return NSFont.systemFont(ofSize: sizes[min(max(level, 1), 6) - 1], weight: .semibold)
+            case .codeBlock:
+                return NSFont.monospacedSystemFont(ofSize: 13, weight: .regular)
+            default:
+                return NSFont.systemFont(ofSize: 14, weight: .regular)
+            }
+        }
+
+        var codeFontSize: CGFloat {
+            if case .heading(let level) = self {
+                let sizes: [CGFloat] = [25, 21, 18, 16, 14, 13]
+                return sizes[min(max(level, 1), 6) - 1]
+            }
+            return 13
+        }
+
+        var paragraphStyle: NSParagraphStyle {
+            let style = NSMutableParagraphStyle()
+            style.lineSpacing = 3
+            switch self {
+            case .listItem(_, _, let depth, _):
+                style.firstLineHeadIndent = CGFloat(max(0, depth - 1) * 28)
+                style.headIndent = CGFloat(depth * 28)
+            case .quote:
+                style.firstLineHeadIndent = 8
+                style.headIndent = 22
+            case .codeBlock:
+                style.firstLineHeadIndent = 12
+                style.headIndent = 12
+            default:
+                break
+            }
+            return style
+        }
+    }
+
+    private struct Theme {
+        let foreground: NSColor
+        let link: NSColor
+        let codeBackground: NSColor
+
+        init(darkMode: Bool) {
+            if darkMode {
+                foreground = NSColor(calibratedWhite: 0.88, alpha: 1)
+                link = NSColor(calibratedRed: 0.38, green: 0.68, blue: 0.98, alpha: 1)
+                codeBackground = NSColor(calibratedWhite: 1, alpha: 0.10)
+            } else {
+                foreground = NSColor(calibratedWhite: 0.14, alpha: 1)
+                link = NSColor(calibratedRed: 0.08, green: 0.36, blue: 0.78, alpha: 1)
+                codeBackground = NSColor(calibratedWhite: 0, alpha: 0.07)
+            }
+        }
+    }
+}

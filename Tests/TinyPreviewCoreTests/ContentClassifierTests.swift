@@ -1,3 +1,4 @@
+import AppKit
 import Foundation
 import XCTest
 @testable import TinyPreviewCore
@@ -21,6 +22,20 @@ final class ContentClassifierTests: XCTestCase {
                 prefix: Data("let value = 1".utf8)
             ),
             .swift
+        )
+        XCTAssertEqual(
+            SourceLanguageDetector.detect(
+                url: URL(fileURLWithPath: "/tmp/example.cts"),
+                prefix: Data("export const value = 1".utf8)
+            ),
+            .typescript
+        )
+        XCTAssertEqual(
+            SourceLanguageDetector.detect(
+                url: URL(fileURLWithPath: "/tmp/example.mts"),
+                prefix: Data("export const value = 1".utf8)
+            ),
+            .typescript
         )
         XCTAssertNil(
             SourceLanguageDetector.detect(
@@ -46,6 +61,36 @@ final class ContentClassifierTests: XCTestCase {
         XCTAssertEqual(limits.sourceCodeBytes, 20 * 1_048_576)
         limits.set(0, for: .text)
         XCTAssertEqual(limits.textBytes, 1 * 1_048_576)
+    }
+
+    func testMarkdownRendererProducesStyledDocument() throws {
+        let rendered = try MarkdownRenderer.render(
+            "# Heading\n\n- **first**\n- second with `code`\n",
+            darkMode: false
+        )
+
+        XCTAssertEqual(rendered.string, "Heading\n\n• first\n• second with code\n")
+        XCTAssertFalse(rendered.string.contains("# Heading"))
+        XCTAssertFalse(rendered.string.contains("**first**"))
+
+        let string = rendered.string as NSString
+        let headingFont = try XCTUnwrap(
+            rendered.attribute(.font, at: string.range(of: "Heading").location, effectiveRange: nil) as? NSFont
+        )
+        let bodyFont = try XCTUnwrap(
+            rendered.attribute(.font, at: string.range(of: "second").location, effectiveRange: nil) as? NSFont
+        )
+        XCTAssertGreaterThan(headingFont.pointSize, bodyFont.pointSize)
+
+        let boldFont = try XCTUnwrap(
+            rendered.attribute(.font, at: string.range(of: "first").location, effectiveRange: nil) as? NSFont
+        )
+        XCTAssertTrue(NSFontManager.shared.traits(of: boldFont).contains(.boldFontMask))
+
+        let codeFont = try XCTUnwrap(
+            rendered.attribute(.font, at: string.range(of: "code").location, effectiveRange: nil) as? NSFont
+        )
+        XCTAssertTrue(NSFontManager.shared.traits(of: codeFont).contains(.fixedPitchFontMask))
     }
 
 }
