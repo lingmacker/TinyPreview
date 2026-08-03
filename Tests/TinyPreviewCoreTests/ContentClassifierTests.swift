@@ -112,5 +112,43 @@ final class ContentClassifierTests: XCTestCase {
         )
         XCTAssertTrue(NSFontManager.shared.traits(of: codeFont).contains(.fixedPitchFontMask))
     }
+    func testMarkdownRendererRendersPipeTableAsRowsAndColumns() throws {
+        let rendered = try MarkdownRenderer.render(
+            """
+            | Name | Value |
+            | --- | ---: |
+            | Alpha | 10 |
+            """,
+            darkMode: false
+        )
+        let textStorage = NSTextStorage(attributedString: rendered)
+        let layoutManager = NSLayoutManager()
+        let textContainer = NSTextContainer(
+            size: NSSize(width: 600, height: CGFloat.greatestFiniteMagnitude)
+        )
+        textStorage.addLayoutManager(layoutManager)
+        layoutManager.addTextContainer(textContainer)
+        layoutManager.ensureLayout(for: textContainer)
+
+        func bounds(of text: String) throws -> NSRect {
+            let characterRange = (rendered.string as NSString).range(of: text)
+            let glyphRange = layoutManager.glyphRange(
+                forCharacterRange: characterRange,
+                actualCharacterRange: nil
+            )
+            return layoutManager.boundingRect(forGlyphRange: glyphRange, in: textContainer)
+        }
+
+        let name = try bounds(of: "Name")
+        let value = try bounds(of: "Value")
+        let alpha = try bounds(of: "Alpha")
+        let number = try bounds(of: "10")
+        XCTAssertEqual(name.minY, value.minY, accuracy: 1)
+        XCTAssertGreaterThan(value.minX, name.maxX)
+        XCTAssertGreaterThan(alpha.minY, name.maxY)
+        XCTAssertEqual(alpha.minY, number.minY, accuracy: 1)
+        XCTAssertGreaterThan(number.minX, alpha.maxX)
+    }
+
 
 }

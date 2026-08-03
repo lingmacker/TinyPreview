@@ -211,20 +211,54 @@ public enum MarkdownRenderer {
         )
         let theme = Theme(darkMode: darkMode)
         let result = NSMutableAttributedString()
+        var tables: [Int: NSTextTable] = [:]
+        var tableCells: [Int: TableCellStyle] = [:]
         var activeBlockID: Int?
+        var activeBlock: BlockStyle?
         var activeListContext: ListContext?
+        var activeTableID: Int?
         var appendedBlock = false
 
         for run in parsed.runs {
             let components = run.presentationIntent?.components ?? []
-            let block = blockStyle(from: components)
+            let tableContext = tableContext(from: components)
             let blockID = components.first?.identity ?? 0
+            let block: BlockStyle
+            if let tableContext {
+                let table = tables[tableContext.tableID] ?? {
+                    let table = makeTable(columnCount: tableContext.columnCount)
+                    tables[tableContext.tableID] = table
+                    return table
+                }()
+                let cell = tableCells[blockID] ?? {
+                    let cell = makeTableCell(
+                        for: tableContext,
+                        table: table,
+                        theme: theme
+                    )
+                    tableCells[blockID] = cell
+                    return cell
+                }()
+                block = .tableCell(cell)
+            } else {
+                block = blockStyle(from: components)
+            }
             let listContext = block.listContext
+            let tableID = tableContext?.tableID
 
             if activeBlockID != blockID {
                 if appendedBlock {
+                    appendLineBreaks(
+                        1,
+                        to: result,
+                        block: activeBlock ?? .paragraph,
+                        theme: theme
+                    )
                     let staysInList = activeListContext != nil && activeListContext == listContext
-                    appendLineBreaks(staysInList ? 1 : 2, to: result, theme: theme)
+                    let staysInTable = activeTableID != nil && activeTableID == tableID
+                    if !staysInList && !staysInTable {
+                        appendLineBreaks(2, to: result, block: .paragraph, theme: theme)
+                    }
                 }
                 if let prefix = block.prefix {
                     result.append(NSAttributedString(
@@ -233,7 +267,9 @@ public enum MarkdownRenderer {
                     ))
                 }
                 activeBlockID = blockID
+                activeBlock = block
                 activeListContext = listContext
+                activeTableID = tableID
                 appendedBlock = true
             }
 
@@ -250,9 +286,94 @@ public enum MarkdownRenderer {
         }
 
         if appendedBlock {
-            appendLineBreaks(1, to: result, theme: theme)
+            appendLineBreaks(
+                1,
+                to: result,
+                block: activeBlock ?? .paragraph,
+                theme: theme
+            )
         }
         return result
+    }
+
+    private static func tableContext(
+        from components: [PresentationIntent.IntentType]
+    ) -> TableContext? {
+        var tableID: Int?
+        var columns: [PresentationIntent.TableColumn]?
+        var row: Int?
+        var column: Int?
+        var isHeader = false
+
+        for component in components {
+            switch component.kind {
+            case .table(let tableColumns):
+                tableID = component.identity
+                columns = tableColumns
+            case .tableHeaderRow:
+                row = 0
+                isHeader = true
+            case .tableRow(let rowIndex):
+                row = rowIndex
+            case .tableCell(let columnIndex):
+                column = columnIndex
+            default:
+                break
+            }
+        }
+
+        guard let tableID, let columns, let row, let column else { return nil }
+        let alignment: NSTextAlignment
+        switch columns[column].alignment {
+        case .center:
+            alignment = .center
+        case .right:
+            alignment = .right
+        default:
+            alignment = .left
+        }
+        return TableContext(
+            tableID: tableID,
+            row: row,
+            column: column,
+            columnCount: columns.count,
+            alignment: alignment,
+            isHeader: isHeader
+        )
+    }
+
+    private static func makeTable(columnCount: Int) -> NSTextTable {
+        let table = NSTextTable()
+        table.numberOfColumns = max(1, columnCount)
+        table.collapsesBorders = true
+        table.layoutAlgorithm = .automatic
+        table.setValue(100, type: .percentageValueType, for: .width)
+        return table
+    }
+
+    private static func makeTableCell(
+        for context: TableContext,
+        table: NSTextTable,
+        theme: Theme
+    ) -> TableCellStyle {
+        let block = NSTextTableBlock(
+            table: table,
+            startingRow: context.row,
+            rowSpan: 1,
+            startingColumn: context.column,
+            columnSpan: 1
+        )
+        block.setWidth(1, type: .absoluteValueType, for: .border)
+        block.setWidth(7, type: .absoluteValueType, for: .padding)
+        block.setBorderColor(theme.tableBorder)
+        if context.isHeader {
+            block.backgroundColor = theme.tableHeaderBackground
+        }
+        return TableCellStyle(
+            block: block,
+            alignment: context.alignment,
+            isHeader: context.isHeader
+        )
     }
 
     private static func blockStyle(
@@ -346,13 +467,14 @@ public enum MarkdownRenderer {
     private static func appendLineBreaks(
         _ count: Int,
         to result: NSMutableAttributedString,
+        block: BlockStyle,
         theme: Theme
     ) {
         let existing = result.string.reversed().prefix { $0 == "\n" }.count
         guard existing < count else { return }
         result.append(NSAttributedString(
             string: String(repeating: "\n", count: count - existing),
-            attributes: attributes(for: nil, block: .paragraph, theme: theme)
+            attributes: attributes(for: nil, block: block, theme: theme)
         ))
     }
 
@@ -360,10 +482,26 @@ public enum MarkdownRenderer {
         let containerID: Int
         let depth: Int
     }
+    private struct TableContext {
+        let tableID: Int
+        let row: Int
+        let column: Int
+        let columnCount: Int
+        let alignment: NSTextAlignment
+        let isHeader: Bool
+    }
+
+    private struct TableCellStyle {
+        let block: NSTextTableBlock
+        let alignment: NSTextAlignment
+        let isHeader: Bool
+    }
+
 
     private enum BlockStyle {
         case heading(Int)
         case paragraph
+        case tableCell(TableCellStyle)
         case listItem(ordered: Bool, ordinal: Int, depth: Int, containerID: Int)
         case quote
         case codeBlock
@@ -395,6 +533,11 @@ public enum MarkdownRenderer {
                 return NSFont.systemFont(ofSize: sizes[min(max(level, 1), 6) - 1], weight: .semibold)
             case .codeBlock:
                 return NSFont.monospacedSystemFont(ofSize: 13, weight: .regular)
+            case .tableCell(let cell):
+                return NSFont.systemFont(
+                    ofSize: 14,
+                    weight: cell.isHeader ? .semibold : .regular
+                )
             default:
                 return NSFont.systemFont(ofSize: 14, weight: .regular)
             }
@@ -421,6 +564,10 @@ public enum MarkdownRenderer {
             case .codeBlock:
                 style.firstLineHeadIndent = 12
                 style.headIndent = 12
+            case .tableCell(let cell):
+                style.textBlocks = [cell.block]
+                style.alignment = cell.alignment
+                style.lineSpacing = 2
             default:
                 break
             }
@@ -432,16 +579,22 @@ public enum MarkdownRenderer {
         let foreground: NSColor
         let link: NSColor
         let codeBackground: NSColor
+        let tableBorder: NSColor
+        let tableHeaderBackground: NSColor
 
         init(darkMode: Bool) {
             if darkMode {
                 foreground = NSColor(calibratedWhite: 0.88, alpha: 1)
                 link = NSColor(calibratedRed: 0.38, green: 0.68, blue: 0.98, alpha: 1)
                 codeBackground = NSColor(calibratedWhite: 1, alpha: 0.10)
+                tableBorder = NSColor(calibratedWhite: 1, alpha: 0.18)
+                tableHeaderBackground = NSColor(calibratedWhite: 1, alpha: 0.06)
             } else {
                 foreground = NSColor(calibratedWhite: 0.14, alpha: 1)
                 link = NSColor(calibratedRed: 0.08, green: 0.36, blue: 0.78, alpha: 1)
                 codeBackground = NSColor(calibratedWhite: 0, alpha: 0.07)
+                tableBorder = NSColor(calibratedWhite: 0, alpha: 0.18)
+                tableHeaderBackground = NSColor(calibratedWhite: 0, alpha: 0.04)
             }
         }
     }
