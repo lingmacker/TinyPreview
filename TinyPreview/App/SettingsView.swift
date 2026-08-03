@@ -1,7 +1,9 @@
+import AppKit
 import SwiftUI
 
 struct SettingsView: View {
     @StateObject private var model = SettingsModel()
+    @State private var didClearInitialFocus = false
 
     var body: some View {
         Form {
@@ -29,7 +31,22 @@ struct SettingsView: View {
         }
         .formStyle(.grouped)
         .frame(width: 560, height: 370)
+        .onAppear {
+            clearInitialFocus(in: NSApp.keyWindow)
+        }
+        .onReceive(NotificationCenter.default.publisher(for: NSWindow.didBecomeKeyNotification)) {
+            clearInitialFocus(in: $0.object as? NSWindow)
+        }
     }
+    private func clearInitialFocus(in window: NSWindow?) {
+        guard !didClearInitialFocus, let window, window.isKeyWindow else { return }
+        DispatchQueue.main.async {
+            guard !didClearInitialFocus, window.isKeyWindow else { return }
+            window.makeFirstResponder(nil)
+            didClearInitialFocus = true
+        }
+    }
+
 
     @ViewBuilder
     private func limitRow(_ category: PreviewCategory, icon: String) -> some View {
