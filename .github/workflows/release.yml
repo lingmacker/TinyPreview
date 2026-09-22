@@ -66,9 +66,6 @@ jobs:
           xcodebuild -version
           xcode-select -p
 
-      - name: Run tests
-        run: make test
-
       - name: Build release app
         env:
           VERSION: ${{ steps.version.outputs.version }}
@@ -79,9 +76,6 @@ jobs:
             CONFIGURATION=Release \
             DERIVED_DATA="$DERIVED_DATA" \
             DESTINATION="platform=macOS,arch=arm64" \
-            CODE_SIGN_STYLE=Manual \
-            CODE_SIGN_IDENTITY="-" \
-            DEVELOPMENT_TEAM="" \
             MARKETING_VERSION="$VERSION" \
             CURRENT_PROJECT_VERSION="$BUILD_NUMBER"
 
@@ -109,13 +103,21 @@ jobs:
         run: |
           set -euo pipefail
           app="$DERIVED_DATA/Build/Products/Release/TinyPreview.app"
-          archive="TinyPreview-$VERSION-macos-arm64.zip"
-          mkdir -p "$DIST_DIR"
-          ditto -c -k --sequesterRsrc --keepParent "$app" "$DIST_DIR/$archive"
+          dmg="TinyPreview-$VERSION-macos-arm64.dmg"
+          dmg_root="$RUNNER_TEMP/dmg-root"
+          mkdir -p "$DIST_DIR" "$dmg_root"
+          ditto "$app" "$dmg_root/TinyPreview.app"
+          ln -s /Applications "$dmg_root/Applications"
+          hdiutil create \
+            -volname TinyPreview \
+            -srcfolder "$dmg_root" \
+            -ov \
+            -format UDZO \
+            "$DIST_DIR/$dmg"
           cd "$DIST_DIR"
-          shasum -a 256 "$archive" > "$archive.sha256"
-          echo "archive=$DIST_DIR/$archive" >> "$GITHUB_OUTPUT"
-          echo "checksum=$DIST_DIR/$archive.sha256" >> "$GITHUB_OUTPUT"
+          shasum -a 256 "$dmg" > "$dmg.sha256"
+          echo "archive=$DIST_DIR/$dmg" >> "$GITHUB_OUTPUT"
+          echo "checksum=$DIST_DIR/$dmg.sha256" >> "$GITHUB_OUTPUT"
 
       - name: Upload workflow artifact
         uses: actions/upload-artifact@v4

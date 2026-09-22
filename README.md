@@ -64,7 +64,7 @@ make build \
 
 ## 发布
 
-推送 `v<主版本>.<次版本>.<修订版本>` 标签会触发 `.github/workflows/release.yml`。工作流使用 Xcode 27 运行测试、构建 Apple Silicon Release App，并上传 ZIP 与 SHA-256 校验文件到对应的 GitHub Release。
+推送 `v<主版本>.<次版本>.<修订版本>` 标签会触发 `.github/workflows/release.yml`。工作流使用 Xcode 27 构建 Apple Silicon Release App，并上传 DMG 与 SHA-256 校验文件到对应的 GitHub Release。
 
 ```sh
 git tag v1.0.0
