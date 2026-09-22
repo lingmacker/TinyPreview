@@ -38,13 +38,8 @@ make
 其他常用命令：
 
 ```sh
-make run           # 构建并启动 TinyPreview
-make install       # 构建并安装到 /Applications
-make test          # 运行 Swift Package 测试
-make clean         # 删除 Xcode 构建产物
-make open-project  # 使用 Xcode 打开工程
-make print-app     # 输出 App 构建路径
-make help          # 显示完整命令说明
+make run    # 构建并启动 TinyPreview
+make clean  # 删除 .build 构建目录
 ```
 
 构建指定版本：
@@ -53,13 +48,10 @@ make help          # 显示完整命令说明
 make build MARKETING_VERSION=1.2.3 CURRENT_PROJECT_VERSION=42
 ```
 
-使用 Developer ID 签名 Release 构建：
+构建 Ad Hoc 签名的 Release App：
 
 ```sh
-make build \
-  CONFIGURATION=Release \
-  CODE_SIGN_IDENTITY="Developer ID Application: Example" \
-  DEVELOPMENT_TEAM=TEAMID
+make build CONFIGURATION=Release
 ```
 
 ## 发布
@@ -71,18 +63,14 @@ git tag v1.0.0
 git push origin v1.0.0
 ```
 
-自动发布的 App 使用 ad-hoc 签名，未经过 Developer ID 签名和公证；首次打开时 macOS 可能要求用户在系统安全设置中确认。
+自动发布的 App 使用 Ad Hoc 签名，未经过 Developer ID 签名和公证；首次打开时 macOS 可能要求用户在系统安全设置中确认。
 
-可通过 `INSTALL_DIR` 修改安装目录：
-
-```sh
-make install INSTALL_DIR="$HOME/Applications"
-```
+最新版本可从 [GitHub Releases](https://github.com/lingmacker/TinyPreview/releases/latest) 下载 DMG。打开 DMG 后，将 TinyPreview 拖入 Applications 文件夹。
 
 ## 使用
 
-1. 执行 `make install` 安装 TinyPreview。
-2. 启动 `/Applications/TinyPreview.app`，配置各类文件的预览大小上限。
+1. 从 DMG 安装 TinyPreview，或使用 `make run` 直接启动构建产物。
+2. 启动 TinyPreview，配置各类文件的预览大小上限。
 3. 在 Finder 中选择受支持的项目并按空格。
 
 Quick Look 会先根据系统识别出的内容类型选择扩展。未知扩展名产生的动态 UTI 不一定会被系统路由到 TinyPreview；TinyPreview 不会修改文件类型，也不会拦截 Finder 键盘事件。
