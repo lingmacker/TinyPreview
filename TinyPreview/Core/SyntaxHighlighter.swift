@@ -2,6 +2,8 @@ import AppKit
 import Foundation
 
 public enum DraculaTheme {
+    public static let background = color(0x28, 0x2A, 0x36)
+    public static let rulerBackground = color(0x21, 0x22, 0x2C)
     public static let foreground = color(0xF8, 0xF8, 0xF2)
     public static let comment = color(0x62, 0x72, 0xA4)
     public static let cyan = color(0x8B, 0xE9, 0xFD)

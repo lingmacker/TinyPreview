@@ -12,8 +12,8 @@ struct SelectableTextViewStyle {
         lineNumberColor: .secondaryLabelColor
     )
     static let dracula = SelectableTextViewStyle(
-        backgroundColor: .textBackgroundColor,
-        rulerBackgroundColor: .controlBackgroundColor,
+        backgroundColor: DraculaTheme.background,
+        rulerBackgroundColor: DraculaTheme.rulerBackground,
         lineNumberColor: DraculaTheme.comment
     )
 }
