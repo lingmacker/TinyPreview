@@ -2,7 +2,6 @@ import SwiftUI
 
 struct PreviewRootView: View {
     @ObservedObject var model: PreviewViewModel
-    @Environment(\.colorScheme) private var colorScheme
 
     var body: some View {
         Group {
@@ -35,8 +34,8 @@ struct PreviewRootView: View {
         let isSourceCode = preview.language != nil && preview.language != .markdown
         let attributedText = model.attributedText ?? (
             isSourceCode
-                ? SyntaxHighlighter.plainCode(preview.text)
-                : SyntaxHighlighter.plainText(preview.text, darkMode: colorScheme == .dark)
+                ? SyntaxHighlighter.plainCode(preview.text, darkMode: model.darkMode)
+                : SyntaxHighlighter.plainText(preview.text, darkMode: model.darkMode)
         )
 
         return VStack(spacing: 0) {
@@ -63,7 +62,7 @@ struct PreviewRootView: View {
                 attributedText: attributedText,
                 wrapsLines: preview.wrapsLines,
                 showsLineNumbers: isSourceCode,
-                style: isSourceCode ? .dracula : .system
+                style: isSourceCode ? .code(darkMode: model.darkMode) : .system
             )
         }
     }

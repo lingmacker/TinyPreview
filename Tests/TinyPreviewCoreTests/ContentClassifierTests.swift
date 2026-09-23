@@ -63,9 +63,9 @@ final class ContentClassifierTests: XCTestCase {
         XCTAssertEqual(limits.textBytes, 1 * 1_048_576)
     }
 
-    func testSyntaxHighlighterUsesDraculaPalette() throws {
+    func testSyntaxHighlighterUsesDayAndNightPalettes() throws {
         let source = "// note\nlet value: String = \"text\" + 42"
-        let rendered = SyntaxHighlighter.highlight(source, language: .swift)
+        let rendered = SyntaxHighlighter.highlight(source, language: .swift, darkMode: true)
         let string = rendered.string as NSString
 
         func color(of token: String) throws -> NSColor {
@@ -75,12 +75,16 @@ final class ContentClassifierTests: XCTestCase {
             )
         }
 
-        XCTAssertTrue(try color(of: "// note").isEqual(DraculaTheme.comment))
-        XCTAssertTrue(try color(of: "let").isEqual(DraculaTheme.pink))
-        XCTAssertTrue(try color(of: "value").isEqual(DraculaTheme.foreground))
-        XCTAssertTrue(try color(of: "String").isEqual(DraculaTheme.cyan))
-        XCTAssertTrue(try color(of: "\"text\"").isEqual(DraculaTheme.yellow))
-        XCTAssertTrue(try color(of: "42").isEqual(DraculaTheme.purple))
+        XCTAssertTrue(try color(of: "// note").isEqual(NSColor(hex: 0x5C6370)))
+        XCTAssertTrue(try color(of: "let").isEqual(NSColor(hex: 0xC678DD)))
+        XCTAssertTrue(try color(of: "value").isEqual(NSColor(hex: 0xABB2BF)))
+        XCTAssertTrue(try color(of: "String").isEqual(NSColor(hex: 0xE5C07B)))
+        XCTAssertTrue(try color(of: "\"text\"").isEqual(NSColor(hex: 0x98C379)))
+        XCTAssertTrue(try color(of: "42").isEqual(NSColor(hex: 0xD19A66)))
+
+        let light = SyntaxHighlighter.highlight(source, language: .swift, darkMode: false)
+        let keyword = (light.attribute(.foregroundColor, at: (light.string as NSString).range(of: "let").location, effectiveRange: nil) as? NSColor)
+        XCTAssertTrue(keyword?.isEqual(NSColor(hex: 0x0000FF)) == true)
     }
 
     func testMarkdownRendererProducesStyledDocument() throws {

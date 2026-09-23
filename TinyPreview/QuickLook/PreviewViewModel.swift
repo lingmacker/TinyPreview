@@ -13,11 +13,13 @@ final class PreviewViewModel: ObservableObject {
     @Published private(set) var result: PreviewResult?
     @Published private(set) var attributedText: NSAttributedString?
     @Published private(set) var highlightStatus: HighlightStatus = .none
+    @Published private(set) var darkMode = NSApp.effectiveAppearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua
     private(set) var url: URL?
     private var generation = UUID()
 
     func load(_ url: URL) {
         self.url = url
+        darkMode = NSApp.effectiveAppearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua
         result = nil
         attributedText = nil
         highlightStatus = .none
@@ -39,14 +41,14 @@ final class PreviewViewModel: ObservableObject {
     }
 
     private func highlight(_ preview: TextPreview, language: SourceLanguage, token: UUID) {
-        let darkMode = NSApp.effectiveAppearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua
+        let darkMode = self.darkMode
         DispatchQueue.global(qos: .userInitiated).async { [weak self] in
             let started = Date()
             let rendered: NSAttributedString?
             if language == .markdown {
                 rendered = try? MarkdownRenderer.render(preview.text, darkMode: darkMode)
             } else {
-                rendered = SyntaxHighlighter.highlight(preview.text, language: language)
+                rendered = SyntaxHighlighter.highlight(preview.text, language: language, darkMode: darkMode)
             }
             let elapsed = Date().timeIntervalSince(started)
             DispatchQueue.main.async {

@@ -1,6 +1,17 @@
 import AppKit
 import Foundation
 
+extension NSColor {
+    convenience init(hex: Int) {
+        self.init(
+            srgbRed: CGFloat((hex >> 16) & 0xFF) / 255,
+            green: CGFloat((hex >> 8) & 0xFF) / 255,
+            blue: CGFloat(hex & 0xFF) / 255,
+            alpha: 1
+        )
+    }
+}
+
 public enum DraculaTheme {
     public static let background = color(0x28, 0x2A, 0x36)
     public static let rulerBackground = color(0x21, 0x22, 0x2C)
@@ -27,9 +38,10 @@ public enum DraculaTheme {
 public enum SyntaxHighlighter {
     public static func highlight(
         _ text: String,
-        language: SourceLanguage
+        language: SourceLanguage,
+        darkMode: Bool
     ) -> NSAttributedString {
-        let theme = Theme()
+        let theme = Theme(darkMode: darkMode)
         let paragraph = codeParagraphStyle()
         let result = NSMutableAttributedString(
             string: text,
@@ -65,12 +77,12 @@ public enum SyntaxHighlighter {
         return result
     }
 
-    public static func plainCode(_ text: String) -> NSAttributedString {
+    public static func plainCode(_ text: String, darkMode: Bool) -> NSAttributedString {
         NSAttributedString(
             string: text,
             attributes: [
                 .font: NSFont.monospacedSystemFont(ofSize: 12.5, weight: .regular),
-                .foregroundColor: DraculaTheme.foreground,
+                .foregroundColor: Theme(darkMode: darkMode).foreground,
                 .paragraphStyle: codeParagraphStyle()
             ]
         )
@@ -196,12 +208,30 @@ public enum SyntaxHighlighter {
     }
 
     private struct Theme {
-        let foreground = DraculaTheme.foreground
-        let comment = DraculaTheme.comment
-        let string = DraculaTheme.yellow
-        let number = DraculaTheme.purple
-        let keyword = DraculaTheme.pink
-        let type = DraculaTheme.cyan
+        let foreground: NSColor
+        let comment: NSColor
+        let string: NSColor
+        let number: NSColor
+        let keyword: NSColor
+        let type: NSColor
+
+        init(darkMode: Bool) {
+            if darkMode {
+                foreground = NSColor(hex: 0xABB2BF)
+                comment = NSColor(hex: 0x5C6370)
+                string = NSColor(hex: 0x98C379)
+                number = NSColor(hex: 0xD19A66)
+                keyword = NSColor(hex: 0xC678DD)
+                type = NSColor(hex: 0xE5C07B)
+            } else {
+                foreground = NSColor(hex: 0x000000)
+                comment = NSColor(hex: 0x008000)
+                string = NSColor(hex: 0xA31515)
+                number = NSColor(hex: 0x098658)
+                keyword = NSColor(hex: 0x0000FF)
+                type = NSColor(hex: 0x267F99)
+            }
+        }
     }
 }
 

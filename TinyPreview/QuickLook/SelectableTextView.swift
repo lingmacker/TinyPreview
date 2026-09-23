@@ -11,11 +11,13 @@ struct SelectableTextViewStyle {
         rulerBackgroundColor: .controlBackgroundColor,
         lineNumberColor: .secondaryLabelColor
     )
-    static let dracula = SelectableTextViewStyle(
-        backgroundColor: DraculaTheme.background,
-        rulerBackgroundColor: DraculaTheme.rulerBackground,
-        lineNumberColor: DraculaTheme.comment
-    )
+    static func code(darkMode: Bool) -> SelectableTextViewStyle {
+        SelectableTextViewStyle(
+            backgroundColor: darkMode ? NSColor(hex: 0x282C34) : NSColor(hex: 0xFFFFFF),
+            rulerBackgroundColor: darkMode ? NSColor(hex: 0x21252B) : NSColor(hex: 0xF3F3F3),
+            lineNumberColor: darkMode ? NSColor(hex: 0x5C6370) : NSColor(hex: 0x237893)
+        )
+    }
 }
 
 struct SelectableTextView: NSViewRepresentable {
