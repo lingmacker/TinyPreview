@@ -1,65 +1,47 @@
 {
-  "fill" : {
-    "automatic-gradient" : "extended-srgb:0.10588,0.10588,0.10588,1.00000"
+  "fill": {
+    "automatic-gradient": "extended-srgb:0.16863,0.17647,0.20392,1.00000"
   },
-  "groups" : [
+  "groups": [
     {
-      "blur-material" : 0.15,
-      "layers" : [
+      "layers": [
         {
-          "image-name" : "03 Magnifier.svg",
-          "name" : "Magnifier and Check"
+          "image-name": "03 Magnifier.svg",
+          "name": "Magnifier"
         }
       ],
-      "shadow" : {
-        "kind" : "neutral",
-        "opacity" : 0.55
-      },
-      "specular" : true,
-      "translucency" : {
-        "enabled" : true,
-        "value" : 0.12
+      "shadow": {
+        "kind": "neutral",
+        "opacity": 0.28
       }
     },
     {
-      "blur-material" : 0.12,
-      "layers" : [
+      "layers": [
         {
-          "image-name" : "02 Document.svg",
-          "name" : "Document"
+          "image-name": "02 Document.svg",
+          "name": "Document"
         }
       ],
-      "shadow" : {
-        "kind" : "neutral",
-        "opacity" : 0.42
-      },
-      "specular" : true,
-      "translucency" : {
-        "enabled" : true,
-        "value" : 0.08
+      "shadow": {
+        "kind": "neutral",
+        "opacity": 0.22
       }
     },
     {
-      "blur-material" : 0.3,
-      "layers" : [
+      "layers": [
         {
-          "image-name" : "01 Back Files.svg",
-          "name" : "Back Files"
+          "image-name": "01 Back Files.svg",
+          "name": "Folder"
         }
       ],
-      "shadow" : {
-        "kind" : "neutral",
-        "opacity" : 0.35
-      },
-      "specular" : true,
-      "translucency" : {
-        "enabled" : true,
-        "value" : 0.38
+      "shadow": {
+        "kind": "neutral",
+        "opacity": 0.16
       }
     }
   ],
-  "supported-platforms" : {
-    "squares" : [
+  "supported-platforms": {
+    "squares": [
       "macOS"
     ]
   }
