@@ -237,12 +237,31 @@ public enum SyntaxHighlighter {
 
 public enum MarkdownRenderer {
     public static func render(_ source: String, darkMode: Bool) throws -> NSAttributedString {
-        let parsed = try AttributedString(
-            markdown: source,
-            options: .init(interpretedSyntax: .full)
-        )
         let theme = Theme(darkMode: darkMode)
         let result = NSMutableAttributedString()
+        let text = source as NSString
+        // Keep front matter literal so its closing delimiter cannot create a Setext heading.
+        let frontMatter = try NSRegularExpression(
+            pattern: #"\A\uFEFF?---[ \t]*\r?\n[\s\S]*?^---[ \t]*(?:\r?\n|\z)"#,
+            options: .anchorsMatchLines
+        ).firstMatch(in: source, range: NSRange(location: 0, length: text.length))
+        if let frontMatter {
+            let paragraph = NSMutableParagraphStyle()
+            paragraph.lineSpacing = 2
+            result.append(NSAttributedString(
+                string: text.substring(with: frontMatter.range),
+                attributes: [
+                    .font: NSFont.monospacedSystemFont(ofSize: 12, weight: .regular),
+                    .foregroundColor: theme.secondary,
+                    .paragraphStyle: paragraph
+                ]
+            ))
+            appendLineBreaks(2, to: result, block: .paragraph, theme: theme)
+        }
+        let parsed = try AttributedString(
+            markdown: text.substring(from: frontMatter?.range.upperBound ?? 0),
+            options: .init(interpretedSyntax: .full)
+        )
         var tables: [Int: NSTextTable] = [:]
         var tableCells: [Int: TableCellStyle] = [:]
         var activeBlockID: Int?
@@ -609,6 +628,7 @@ public enum MarkdownRenderer {
 
     private struct Theme {
         let foreground: NSColor
+        let secondary: NSColor
         let link: NSColor
         let codeBackground: NSColor
         let tableBorder: NSColor
@@ -617,12 +637,14 @@ public enum MarkdownRenderer {
         init(darkMode: Bool) {
             if darkMode {
                 foreground = NSColor(calibratedWhite: 0.88, alpha: 1)
+                secondary = NSColor(calibratedWhite: 0.65, alpha: 1)
                 link = NSColor(calibratedRed: 0.38, green: 0.68, blue: 0.98, alpha: 1)
                 codeBackground = NSColor(calibratedWhite: 1, alpha: 0.10)
                 tableBorder = NSColor(calibratedWhite: 1, alpha: 0.18)
                 tableHeaderBackground = NSColor(calibratedWhite: 1, alpha: 0.06)
             } else {
                 foreground = NSColor(calibratedWhite: 0.14, alpha: 1)
+                secondary = NSColor(calibratedWhite: 0.45, alpha: 1)
                 link = NSColor(calibratedRed: 0.08, green: 0.36, blue: 0.78, alpha: 1)
                 codeBackground = NSColor(calibratedWhite: 0, alpha: 0.07)
                 tableBorder = NSColor(calibratedWhite: 0, alpha: 0.18)

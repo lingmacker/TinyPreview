@@ -116,6 +116,69 @@ final class ContentClassifierTests: XCTestCase {
         )
         XCTAssertTrue(NSFontManager.shared.traits(of: codeFont).contains(.fixedPitchFontMask))
     }
+    func testMarkdownFrontMatterUsesSmallSecondaryTextInBothThemes() throws {
+        let metadata = "---\nname: 预览\ndescription: **literal**\ntags: [one, two]\n---\n"
+        for darkMode in [false, true] {
+            let rendered = try MarkdownRenderer.render(
+                metadata + "\n# Heading\n\nBody text\n",
+                darkMode: darkMode
+            )
+            XCTAssertEqual(rendered.string, metadata + "\nHeading\n\nBody text\n")
+            let text = rendered.string as NSString
+            let metadataRange = text.range(of: metadata)
+            rendered.enumerateAttributes(in: metadataRange) { attributes, _, _ in
+                let font = attributes[.font] as? NSFont
+                XCTAssertEqual(font?.pointSize, 12)
+                XCTAssertTrue(font.map {
+                    NSFontManager.shared.traits(of: $0).contains(.fixedPitchFontMask)
+                } ?? false)
+                XCTAssertTrue((attributes[.foregroundColor] as? NSColor)?.isEqual(
+                    NSColor(calibratedWhite: darkMode ? 0.65 : 0.45, alpha: 1)
+                ) == true)
+            }
+            let headingFont = rendered.attribute(
+                .font, at: text.range(of: "Heading").location, effectiveRange: nil
+            ) as? NSFont
+            let bodyFont = rendered.attribute(
+                .font, at: text.range(of: "Body text").location, effectiveRange: nil
+            ) as? NSFont
+            let bodyColor = rendered.attribute(
+                .foregroundColor, at: text.range(of: "Body text").location, effectiveRange: nil
+            ) as? NSColor
+            XCTAssertEqual(headingFont?.pointSize, 28)
+            XCTAssertEqual(bodyFont?.pointSize, 14)
+            XCTAssertTrue(bodyColor?.isEqual(
+                NSColor(calibratedWhite: darkMode ? 0.88 : 0.14, alpha: 1)
+            ) == true)
+        }
+    }
+
+    func testMarkdownFrontMatterAcceptsCRLFAndEmptyMetadata() throws {
+        for metadata in [
+            "---\r\nname: 示例\r\n---\r\n",
+            "\u{FEFF}---\nname: 示例\n---\n",
+            "---\n---\n",
+            "---\nname: 示例\n---"
+        ] {
+            let rendered = try MarkdownRenderer.render(metadata, darkMode: false)
+            XCTAssertTrue(rendered.string.hasPrefix(metadata))
+            let font = rendered.attribute(.font, at: 0, effectiveRange: nil) as? NSFont
+            XCTAssertEqual(font?.pointSize, 12)
+        }
+    }
+
+    func testMarkdownFrontMatterDoesNotChangeBodySetextHeadingsOrUnclosedBlocks() throws {
+        let heading = try MarkdownRenderer.render("Title\n---\n", darkMode: false)
+        let headingFont = heading.attribute(.font, at: 0, effectiveRange: nil) as? NSFont
+        XCTAssertEqual(headingFont?.pointSize, 24)
+        for source in ["---\nname: example\n", "# Intro\n\n---\nname: example\n---\n"] {
+            let rendered = try MarkdownRenderer.render(source, darkMode: false)
+            let location = (rendered.string as NSString).range(of: "name:").location
+            let font = rendered.attribute(.font, at: location, effectiveRange: nil) as? NSFont
+            XCTAssertNotEqual(font?.pointSize, 12)
+        }
+    }
+
     func testMarkdownRendererRendersPipeTableAsRowsAndColumns() throws {
         let rendered = try MarkdownRenderer.render(
             """
