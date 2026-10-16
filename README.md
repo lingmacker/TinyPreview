@@ -6,7 +6,7 @@ TinyPreview 是一个面向 Finder 的 macOS Quick Look 增强工具。选中文
 
 - **文件夹预览**：以只读清单展示目录内容，不递归展开隐藏目录或包内容。
 - **压缩包预览**：无需解压即可展示 ZIP、TAR、GZIP、BZIP2、XZ、7Z 和 RAR 等压缩包的内容清单。
-- **纯文本预览**：按内容识别 UTF-8，以及带 BOM 的 UTF-16/UTF-32 文本，不依赖文件扩展名进行内容分类。
+- **纯文本预览**：按内容识别 UTF-8，以及带 BOM 的 UTF-16/UTF-32 文本，不依赖文件扩展名进行内容分类；支持 `.gitignore`、`.gitattributes`、`.gitmodules`、`.env`、`.editorconfig`、`.npmrc`、`.bashrc`、`.zshrc` 等常见点文件。
 - **代码高亮**：根据标准扩展名、知名文件名或 shebang 识别常见编程语言并提供语法高亮。
 - **Markdown 渲染**：将标题、强调、行内代码、列表、引用和链接渲染为可选择的富文本。
 - **图片预览**：支持 Image I/O 能够解码的图片格式以及经过安全校验的 SVG。
@@ -73,7 +73,7 @@ git push origin v1.0.0
 2. 启动 TinyPreview，配置各类文件的预览大小上限。
 3. 在 Finder 中选择受支持的项目并按空格。
 
-Quick Look 会先根据系统识别出的内容类型选择扩展。未知扩展名产生的动态 UTI 不一定会被系统路由到 TinyPreview；TinyPreview 不会修改文件类型，也不会拦截 Finder 键盘事件。
+Quick Look 会先根据系统识别出的内容类型选择扩展。TinyPreview 声明通用 `public.data` 类型，以接收系统识别为通用数据的无扩展名点文件；这也可能接管其他通用数据文件的预览，非文本且不受支持的内容会显示“不支持”。未知扩展名产生的动态 UTI（例如 `.env.local`）仍不保证会被系统路由到 TinyPreview；TinyPreview 不会修改文件类型，也不会拦截 Finder 键盘事件。
 
 ## 项目结构
 

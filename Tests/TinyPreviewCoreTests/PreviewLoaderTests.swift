@@ -15,6 +15,42 @@ final class PreviewLoaderTests: XCTestCase {
         XCTAssertNil(preview.language)
     }
 
+    func testCommonDotfilesLoadAsText() throws {
+        let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString, isDirectory: true)
+        try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: root) }
+
+        let text = "# config\nVALUE=你好\n"
+        for name in [
+            ".gitignore", ".gitattributes", ".gitmodules", ".env",
+            ".editorconfig", ".npmrc", ".bashrc", ".zshrc"
+        ] {
+            let url = root.appendingPathComponent(name)
+            try Data(text.utf8).write(to: url)
+
+            guard case .text(let preview) = PreviewLoader.load(url) else {
+                XCTFail("Expected a text preview for \(name)")
+                continue
+            }
+            XCTAssertEqual(preview.text, text, name)
+            XCTAssertNil(preview.language, name)
+        }
+    }
+
+    func testDotfileWithBinaryContentIsUnsupported() throws {
+        let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString, isDirectory: true)
+        try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: root) }
+
+        let url = root.appendingPathComponent(".env")
+        try Data([0x41, 0x00, 0x42]).write(to: url)
+
+        guard case .message(let message) = PreviewLoader.load(url) else {
+            return XCTFail("Expected binary content to be rejected")
+        }
+        XCTAssertEqual(message.kind, .unsupported)
+    }
+
     func testSourceFileOverCategoryLimitIsRefused() throws {
         let url = temporaryURL(extension: "swift")
         try Data(repeating: 0x20, count: 1_048_577).write(to: url)
