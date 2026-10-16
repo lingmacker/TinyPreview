@@ -7,7 +7,6 @@
 
 /* Begin PBXBuildFile section */
 		A10000000000000000000001 /* TinyPreviewApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000001 /* TinyPreviewApp.swift */; };
-		A60000000000000000000001 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000004 /* Assets.xcassets */; };
 		A60000000000000000000002 /* AppIcon.icon in Resources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000005 /* AppIcon.icon */; };
 		A10000000000000000000002 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000002 /* SettingsView.swift */; };
 		A10000000000000000000003 /* SettingsModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000003 /* SettingsModel.swift */; };
@@ -47,7 +46,6 @@
 		F10000000000000000000001 /* TinyPreviewApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TinyPreviewApp.swift; sourceTree = "<group>"; };
 		F10000000000000000000002 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		F10000000000000000000003 /* SettingsModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsModel.swift; sourceTree = "<group>"; };
-		F10000000000000000000004 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		F10000000000000000000005 /* AppIcon.icon */ = {isa = PBXFileReference; lastKnownFileType = folder.iconcomposer.icon; path = AppIcon.icon; sourceTree = "<group>"; };
 		F20000000000000000000001 /* PreviewViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewViewController.swift; sourceTree = "<group>"; };
 		F20000000000000000000002 /* PreviewViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewViewModel.swift; sourceTree = "<group>"; };
@@ -79,7 +77,7 @@
 		G30000000000000000000001 /* Core */ = {isa = PBXGroup; path = Core; sourceTree = "<group>"; children = (F30000000000000000000001, F30000000000000000000002, F30000000000000000000003, F30000000000000000000004, F30000000000000000000005, F30000000000000000000006, F30000000000000000000007, F30000000000000000000008, ); };
 		G20000000000000000000001 /* QuickLook */ = {isa = PBXGroup; path = QuickLook; sourceTree = "<group>"; children = (F20000000000000000000001, F20000000000000000000002, F20000000000000000000003, F20000000000000000000004, F20000000000000000000005, ); };
 		G70000000000000000000001 /* Support */ = {isa = PBXGroup; path = Support; sourceTree = "<group>"; children = (F20000000000000000000006, ); };
-		G80000000000000000000001 /* Resources */ = {isa = PBXGroup; path = Resources; sourceTree = "<group>"; children = (F10000000000000000000005 /* AppIcon.icon */, F10000000000000000000004 /* Assets.xcassets */, ); };
+		G80000000000000000000001 /* Resources */ = {isa = PBXGroup; path = Resources; sourceTree = "<group>"; children = (F10000000000000000000005 /* AppIcon.icon */, ); };
 		G40000000000000000000001 /* Products */ = {isa = PBXGroup; name = Products; sourceTree = "<group>"; children = (P10000000000000000000001, P20000000000000000000001, ); };
 /* End PBXGroup section */
 
@@ -93,7 +91,7 @@
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
-		B10000000000000000000003 = {isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = (A60000000000000000000002 /* AppIcon.icon in Resources */, A60000000000000000000001 /* Assets.xcassets in Resources */, ); runOnlyForDeploymentPostprocessing = 0; };
+		B10000000000000000000003 = {isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = (A60000000000000000000002 /* AppIcon.icon in Resources */, ); runOnlyForDeploymentPostprocessing = 0; };
 		B20000000000000000000003 = {isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
 /* End PBXResourcesBuildPhase section */
 

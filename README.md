@@ -1,4 +1,12 @@
-# TinyPreview
+<p align="center">
+  <img src="icon.png" width="128" height="128" alt="TinyPreview 图标">
+</p>
+
+<h1 align="center">TinyPreview</h1>
+
+<p align="center">
+  <strong>简体中文</strong> · <a href="README.en.md">English</a>
+</p>
 
 TinyPreview 是一个面向 Finder 的 macOS Quick Look 增强工具。选中文件或文件夹并按空格，即可通过系统快速预览窗口查看内容。
 
