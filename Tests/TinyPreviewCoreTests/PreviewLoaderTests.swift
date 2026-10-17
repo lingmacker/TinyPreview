@@ -94,7 +94,10 @@ final class PreviewLoaderTests: XCTestCase {
         XCTAssertEqual(preview.knownBytes, 14)
     }
 
-    func testSharedSettingsRoundTripAndReset() {
+    func testSharedSettingsRoundTripAndReset() throws {
+        guard ProcessInfo.processInfo.environment["TINYPREVIEW_TEST_GLOBAL_SETTINGS"] == "1" else {
+            throw XCTSkip("Opt in explicitly: this test writes the user's global preview settings.")
+        }
         let original = SharedSettings.load()
         defer { XCTAssertTrue(SharedSettings.save(original)) }
 

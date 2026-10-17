@@ -46,6 +46,9 @@ struct SelectableTextView: NSViewRepresentable {
         textView.backgroundColor = style.backgroundColor
         textView.textContainerInset = NSSize(width: 14, height: 12)
         textView.usesFindPanel = false
+        textView.usesFindBar = false
+        textView.isIncrementalSearchingEnabled = false
+        textView.setAccessibilityLabel("预览内容")
         textView.isAutomaticLinkDetectionEnabled = false
         textView.isAutomaticDataDetectionEnabled = false
         textView.isAutomaticTextCompletionEnabled = false
@@ -100,12 +103,13 @@ struct SelectableTextView: NSViewRepresentable {
     }
 
     private func updateText(_ textView: NSTextView, coordinator: Coordinator) {
-        if let previous = coordinator.lastAttributedText,
-           previous.isEqual(to: attributedText) {
-            return
-        }
+        if let previous = coordinator.lastAttributedText, previous.isEqual(to: attributedText) { return }
+        let selection = textView.selectedRange()
+        let sameText = textView.string == attributedText.string
         coordinator.lastAttributedText = attributedText
         textView.textStorage?.setAttributedString(attributedText)
+        textView.didChangeText()
+        if sameText { textView.setSelectedRange(selection) }
         coordinator.ruler?.updateLineStarts(for: attributedText.string)
     }
 

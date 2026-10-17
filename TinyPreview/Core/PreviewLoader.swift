@@ -4,7 +4,8 @@ public enum PreviewLoader {
     public static func load(
         _ url: URL,
         limits: PreviewLimits = SharedSettings.load(),
-        budget: SafetyBudget = .standard
+        budget: SafetyBudget = .standard,
+        allowPartialText: Bool = false
     ) -> PreviewResult {
         let started = Date()
         do {
@@ -58,8 +59,11 @@ public enum PreviewLoader {
                     return .message(corrupt(url, systemType: classification.systemType, detail: error.localizedDescription))
                 }
 
+            case .propertyList:
+                return loadPropertyList(url, classification: classification, limits: limits, budget: budget, started: started)
+
             case .source(let language):
-                if let refusal = sizeRefusal(url, classification: classification, category: .sourceCode, limits: limits) {
+                if !allowPartialText, let refusal = sizeRefusal(url, classification: classification, category: .sourceCode, limits: limits, canPreviewPrefix: true) {
                     return .message(refusal)
                 }
                 return loadText(
@@ -68,11 +72,16 @@ public enum PreviewLoader {
                     language: language,
                     category: .sourceCode,
                     started: started,
-                    budget: budget
+                    budget: budget,
+                    maximumBytes: limits.sourceCodeBytes,
+                    allowPartial: allowPartialText
                 )
 
-            case .text:
-                if let refusal = sizeRefusal(url, classification: classification, category: .text, limits: limits) {
+            case .text, .delimited:
+                let isDelimited: Bool
+                if case .delimited = classification.content { isDelimited = true } else { isDelimited = false }
+                if !allowPartialText || isDelimited,
+                   let refusal = sizeRefusal(url, classification: classification, category: .text, limits: limits, canPreviewPrefix: !isDelimited) {
                     return .message(refusal)
                 }
                 return loadText(
@@ -81,7 +90,9 @@ public enum PreviewLoader {
                     language: nil,
                     category: .text,
                     started: started,
-                    budget: budget
+                    budget: budget,
+                    maximumBytes: limits.textBytes,
+                    allowPartial: allowPartialText && !isDelimited
                 )
 
             case .unsupported:
@@ -102,29 +113,77 @@ public enum PreviewLoader {
         language: SourceLanguage?,
         category: PreviewCategory,
         started: Date,
-        budget: SafetyBudget
+        budget: SafetyBudget,
+        maximumBytes: Int64,
+        allowPartial: Bool
     ) -> PreviewResult {
         do {
-            let data = try Data(contentsOf: url, options: .mappedIfSafe)
-            let estimated = Int64(data.count).multipliedReportingOverflow(by: 3)
-            guard !estimated.overflow, estimated.partialValue <= budget.maximumWorkingBytes else {
-                return .message(resourceRefusal(
-                    url,
-                    category: category,
-                    detail: "解码文本会超过 256 MB 安全预算。"
+            let ceiling = min(maximumBytes, budget.maximumWorkingBytes / 16, Int64(Int.max - 1))
+            let cap = Int(allowPartial ? min(1_048_576, ceiling) : ceiling)
+            guard cap > 0 else { return .message(resourceRefusal(url, category: category, detail: "文本安全预算不足。")) }
+            let data = try readBounded(url, maximumBytes: cap)
+            let truncated = data.count > cap
+            if truncated && !allowPartial {
+                let canPreviewPrefix: Bool
+                if case .delimited = classification.content { canPreviewPrefix = false } else { canPreviewPrefix = true }
+                return .message(PreviewMessage(
+                    kind: .refused, title: "已停止文本预览",
+                    detail: canPreviewPrefix ? "内容超过读取或内存安全预算，可仅预览开头。" : "表格超过读取或内存安全预算。",
+                    fileName: url.lastPathComponent, systemType: classification.systemType,
+                    actualBytes: classification.fileSize, limitBytes: Int64(cap), canPreviewPrefix: canPreviewPrefix
                 ))
             }
-            guard let (text, encoding) = UnicodeTextDecoder.decode(data) else {
-                return .message(unsupported(
-                    url,
-                    systemType: classification.systemType,
-                    detail: "内容不是受支持的 Unicode 纯文本。"
-                ))
+            let payload = Data(data.prefix(cap))
+            guard let (text, encoding) = truncated ? UnicodeTextDecoder.decodePrefix(payload) : UnicodeTextDecoder.decode(payload) else {
+                return .message(unsupported(url, systemType: classification.systemType, detail: "内容不是受支持的 Unicode 纯文本。"))
             }
-            guard !timedOut(started, budget: budget) else {
-                return .message(timeoutRefusal(url, category: category))
+            var formatted: String?
+            var notice = truncated ? "仅显示开头最多 1 MB 的内容；文件已截断，不代表完整内容。" : nil
+            if !truncated, language == .json {
+                do { formatted = try StructuredPreview.json(text, maximumBytes: Int(min(16 * 1_048_576, budget.maximumWorkingBytes / 4))) }
+                catch { notice = "JSON 格式化不可用：语法无效或超过安全预算；显示原文。" }
             }
-            return .text(TextPreview(text: text, encoding: encoding, language: language))
+            let result: PreviewResult
+            if !truncated, case .delimited(let separator) = classification.content {
+                do { result = .delimited(try DelimitedTextParser.parse(text, separator: separator, budget: budget)) }
+                catch { result = .text(TextPreview(text: text, encoding: encoding, language: nil, notice: "表格预览不可用：\(error.localizedDescription)；显示原文。")) }
+            } else {
+                result = .text(TextPreview(text: text, encoding: encoding, language: language, formattedText: formatted, notice: notice, isTruncated: truncated))
+            }
+            guard !timedOut(started, budget: budget) else { return .message(timeoutRefusal(url, category: category)) }
+            return result
+        } catch {
+            return .message(corrupt(url, systemType: classification.systemType, detail: error.localizedDescription))
+        }
+    }
+
+    private static func readBounded(_ url: URL, maximumBytes: Int) throws -> Data {
+        let handle = try FileHandle(forReadingFrom: url)
+        defer { try? handle.close() }
+        return try handle.read(upToCount: maximumBytes + 1) ?? Data()
+    }
+
+    private static func loadPropertyList(_ url: URL, classification: Classification, limits: PreviewLimits,
+                                         budget: SafetyBudget, started: Date) -> PreviewResult {
+        if let refusal = sizeRefusal(url, classification: classification, category: .sourceCode, limits: limits) { return .message(refusal) }
+        do {
+            let cap = Int(max(0, min(limits.sourceCodeBytes, budget.maximumWorkingBytes / 16, Int64(Int.max - 1))))
+            let data = try readBounded(url, maximumBytes: cap)
+            guard data.count <= cap else { return .message(resourceRefusal(url, category: .sourceCode, detail: "plist 超过内存安全预算。")) }
+            let binary = data.starts(with: Array("bplist00".utf8))
+            let original = UnicodeTextDecoder.decode(data)
+            let preview: TextPreview
+            do {
+                let xml = try StructuredPreview.propertyList(data, maximumBytes: Int(min(16 * 1_048_576, max(0, budget.maximumWorkingBytes / 4))))
+                preview = TextPreview(text: original?.0 ?? xml, encoding: original?.1 ?? .utf8, language: .xml,
+                                      formattedText: original == nil ? nil : xml,
+                                      notice: binary ? "二进制 plist：以只读 XML 展示，不是原始二进制内容。" : nil)
+            } catch {
+                guard let original else { return .message(corrupt(url, systemType: classification.systemType, detail: "plist 无法解析：\(error.localizedDescription)")) }
+                preview = TextPreview(text: original.0, encoding: original.1, language: .xml, notice: "plist 解析失败；显示原文。")
+            }
+            guard !timedOut(started, budget: budget) else { return .message(timeoutRefusal(url, category: .sourceCode)) }
+            return .text(preview)
         } catch {
             return .message(corrupt(url, systemType: classification.systemType, detail: error.localizedDescription))
         }
@@ -134,7 +193,8 @@ public enum PreviewLoader {
         _ url: URL,
         classification: Classification,
         category: PreviewCategory,
-        limits: PreviewLimits
+        limits: PreviewLimits,
+        canPreviewPrefix: Bool = false
     ) -> PreviewMessage? {
         guard let actual = classification.fileSize else { return nil }
         let limit = limits.value(for: category)
@@ -146,7 +206,8 @@ public enum PreviewLoader {
             fileName: url.lastPathComponent,
             systemType: classification.systemType,
             actualBytes: actual,
-            limitBytes: limit
+            limitBytes: limit,
+            canPreviewPrefix: canPreviewPrefix
         )
     }
 

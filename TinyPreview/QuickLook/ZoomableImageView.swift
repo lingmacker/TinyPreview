@@ -26,13 +26,14 @@ struct ZoomableImageView: NSViewRepresentable {
     }
 
     private func update(_ scrollView: ImageScrollView, coordinator: Coordinator) {
+        scrollView.drawsBackground = true
+        scrollView.backgroundColor = .windowBackgroundColor
         let hash = preview.data.hashValue ^ (preview.firstFrameOnly ? 1 : 0)
         guard coordinator.lastHash != hash else { return }
         coordinator.lastHash = hash
         guard let image = makeImage() else { return }
 
-        let canvas = CheckerboardImageCanvas(image: image)
-        scrollView.documentView = canvas
+        scrollView.documentView = CheckerboardImageCanvas(image: image)
         scrollView.imageSize = image.size
         DispatchQueue.main.async { scrollView.fitImage() }
     }
@@ -53,6 +54,14 @@ struct ZoomableImageView: NSViewRepresentable {
 
 private final class CheckerboardImageCanvas: NSView {
     private let imageView: NSImageView
+    private static let checkerboard = NSColor(patternImage: NSImage(size: NSSize(width: 20, height: 20), flipped: false) { rect in
+        NSColor(calibratedWhite: 0.88, alpha: 1).setFill()
+        rect.fill()
+        NSColor(calibratedWhite: 0.78, alpha: 1).setFill()
+        NSRect(x: 0, y: 0, width: 10, height: 10).fill()
+        NSRect(x: 10, y: 10, width: 10, height: 10).fill()
+        return true
+    })
 
     init(image: NSImage) {
         imageView = NSImageView(frame: NSRect(origin: .zero, size: image.size))
@@ -71,19 +80,10 @@ private final class CheckerboardImageCanvas: NSView {
 
     override func draw(_ dirtyRect: NSRect) {
         super.draw(dirtyRect)
-        let tile: CGFloat = 10
-        let light = NSColor(calibratedWhite: 0.88, alpha: 1)
-        let dark = NSColor(calibratedWhite: 0.78, alpha: 1)
-        let minX = Int(floor(dirtyRect.minX / tile))
-        let maxX = Int(ceil(dirtyRect.maxX / tile))
-        let minY = Int(floor(dirtyRect.minY / tile))
-        let maxY = Int(ceil(dirtyRect.maxY / tile))
-        for x in minX ..< maxX {
-            for y in minY ..< maxY {
-                ((x + y).isMultiple(of: 2) ? light : dark).setFill()
-                NSRect(x: CGFloat(x) * tile, y: CGFloat(y) * tile, width: tile, height: tile).fill()
-            }
-        }
+        let area = dirtyRect.intersection(bounds)
+        guard !area.isEmpty, area.width.isFinite, area.height.isFinite else { return }
+        Self.checkerboard.setFill()
+        area.fill()
     }
 }
 
@@ -102,14 +102,22 @@ private final class CenteringClipView: NSClipView {
 }
 
 final class ImageScrollView: NSScrollView {
-    var imageSize: NSSize = .zero
+    var imageSize: NSSize = .zero { didSet { needsInitialFit = true; needsLayout = true } }
+    private var needsInitialFit = true
     private var fittedMagnification: CGFloat = 1
     private var dragOrigin: NSPoint?
     private var scrollOrigin: NSPoint?
 
+    override func layout() {
+        super.layout()
+        if needsInitialFit { fitImage() }
+    }
+
     func fitImage() {
         guard imageSize.width > 0, imageSize.height > 0 else { return }
         let available = contentSize
+        guard available.width > 0, available.height > 0 else { return }
+        needsInitialFit = false
         fittedMagnification = min(
             available.width / imageSize.width,
             available.height / imageSize.height,

@@ -7,6 +7,8 @@ public enum ClassifiedContent: Equatable, Sendable {
     case archive
     case image(isSVG: Bool)
     case source(SourceLanguage)
+    case propertyList
+    case delimited(separator: Character)
     case text
     case unsupported
 }
@@ -47,6 +49,13 @@ public enum ContentClassifier {
         }
         if isSystemImage(prefix, systemType: values.contentType) {
             return Classification(content: .image(isSVG: false), fileSize: fileSize, systemType: systemType)
+        }
+        if prefix.starts(with: Array("bplist00".utf8)) || url.pathExtension.lowercased() == "plist" {
+            return Classification(content: .propertyList, fileSize: fileSize, systemType: systemType)
+        }
+        if ["csv", "tsv"].contains(url.pathExtension.lowercased()) {
+            let separator: Character = url.pathExtension.lowercased() == "tsv" ? "\t" : ","
+            return Classification(content: .delimited(separator: separator), fileSize: fileSize, systemType: systemType)
         }
         if let language = SourceLanguageDetector.detect(url: url, prefix: prefix) {
             return Classification(content: .source(language), fileSize: fileSize, systemType: systemType)
@@ -187,6 +196,21 @@ public enum UnicodeTextDecoder {
         if text.first == "\u{FEFF}" { text.removeFirst() }
         guard isPlainText(text) else { return nil }
         return (text, encoding)
+    }
+
+    public static func decodePrefix(_ data: Data) -> (String, UnicodeTextEncoding)? {
+        // A bounded read may end inside a Unicode scalar or UTF-16 surrogate pair.
+        let encoding: String.Encoding
+        if data.starts(with: [0x00, 0x00, 0xFE, 0xFF]) { encoding = .utf32BigEndian }
+        else if data.starts(with: [0xFF, 0xFE, 0x00, 0x00]) { encoding = .utf32LittleEndian }
+        else if data.starts(with: [0xFE, 0xFF]) { encoding = .utf16BigEndian }
+        else if data.starts(with: [0xFF, 0xFE]) { encoding = .utf16LittleEndian }
+        else { encoding = .utf8 }
+        for trim in 0...min(3, data.count) {
+            let candidate = Data(data.dropLast(trim))
+            if String(data: candidate, encoding: encoding) != nil { return decode(candidate) }
+        }
+        return nil
     }
 
     private static func isPlainText(_ text: String) -> Bool {

@@ -113,7 +113,28 @@ public struct TextPreview: Sendable {
     public let encoding: UnicodeTextEncoding
     public let language: SourceLanguage?
 
+    public let formattedText: String?
+    public let notice: String?
+    public let isTruncated: Bool
+
+    public init(text: String, encoding: UnicodeTextEncoding, language: SourceLanguage?,
+                formattedText: String? = nil, notice: String? = nil, isTruncated: Bool = false) {
+        self.text = text
+        self.encoding = encoding
+        self.language = language
+        self.formattedText = formattedText
+        self.notice = notice
+        self.isTruncated = isTruncated
+    }
+
     public var wrapsLines: Bool { language == nil || language == .markdown }
+}
+
+public struct DelimitedPreview: Sendable {
+    public let rows: [[String]]
+    public let columnCount: Int
+    public let isTruncated: Bool
+    public let notice: String?
 }
 
 public struct ImagePreview: @unchecked Sendable {
@@ -122,6 +143,8 @@ public struct ImagePreview: @unchecked Sendable {
     public let firstFrameOnly: Bool
     public let pixelWidth: Int
     public let pixelHeight: Int
+    public let formatName: String
+    public let hasAlpha: Bool?
 }
 
 public struct ContainerEntry: Identifiable, Equatable, Sendable {
@@ -177,11 +200,25 @@ public struct PreviewMessage: Sendable {
     public let systemType: String?
     public let actualBytes: Int64?
     public let limitBytes: Int64?
+    public let canPreviewPrefix: Bool
+
+    public init(kind: PreviewMessageKind, title: String, detail: String, fileName: String,
+                systemType: String?, actualBytes: Int64?, limitBytes: Int64?, canPreviewPrefix: Bool = false) {
+        self.kind = kind
+        self.title = title
+        self.detail = detail
+        self.fileName = fileName
+        self.systemType = systemType
+        self.actualBytes = actualBytes
+        self.limitBytes = limitBytes
+        self.canPreviewPrefix = canPreviewPrefix
+    }
 }
 
 public enum PreviewResult: @unchecked Sendable {
     case text(TextPreview)
     case image(ImagePreview)
+    case delimited(DelimitedPreview)
     case container(ContainerPreview)
     case message(PreviewMessage)
 }

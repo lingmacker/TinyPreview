@@ -325,15 +325,29 @@ public enum MarkdownRenderer {
             }
 
             let text = String(parsed[run.range].characters)
-            result.append(NSAttributedString(
-                string: text,
-                attributes: attributes(
-                    for: run.inlinePresentationIntent,
-                    link: run.link,
-                    block: block,
-                    theme: theme
-                )
-            ))
+            let codeLanguage = components.compactMap { component -> SourceLanguage? in
+                guard case .codeBlock(let hint) = component.kind, let hint else { return nil }
+                let name = hint.lowercased().trimmingCharacters(in: .whitespaces)
+                let aliases: [String: SourceLanguage] = ["bash": .shell, "sh": .shell, "zsh": .shell, "js": .javascript,
+                    "ts": .typescript, "py": .python, "c++": .cpp, "objective-c": .objectiveC]
+                return aliases[name] ?? SourceLanguage(rawValue: name) ??
+                    SourceLanguageDetector.detect(url: URL(fileURLWithPath: "code.\(name)"), prefix: Data())
+            }.first
+            if let language = codeLanguage {
+                let code = NSMutableAttributedString(attributedString: SyntaxHighlighter.highlight(text, language: language, darkMode: darkMode))
+                code.addAttribute(.paragraphStyle, value: block.paragraphStyle, range: NSRange(location: 0, length: code.length))
+                result.append(code)
+            } else {
+                result.append(NSAttributedString(
+                    string: text,
+                    attributes: attributes(
+                        for: run.inlinePresentationIntent,
+                        link: run.link,
+                        block: block,
+                        theme: theme
+                    )
+                ))
+            }
         }
 
         if appendedBlock {

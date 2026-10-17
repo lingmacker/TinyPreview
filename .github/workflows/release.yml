@@ -66,6 +66,9 @@ jobs:
           xcodebuild -version
           xcode-select -p
 
+      - name: Run core tests
+        run: make test
+
       - name: Build release app
         env:
           VERSION: ${{ steps.version.outputs.version }}

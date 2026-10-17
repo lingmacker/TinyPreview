@@ -32,6 +32,16 @@
 		A40000000000000000000007 /* PreviewLoader.swift in Extension Sources */ = {isa = PBXBuildFile; fileRef = F30000000000000000000007 /* PreviewLoader.swift */; };
 		A40000000000000000000008 /* SyntaxHighlighter.swift in Extension Sources */ = {isa = PBXBuildFile; fileRef = F30000000000000000000008 /* SyntaxHighlighter.swift */; };
 		A50000000000000000000001 /* TinyPreviewQuickLook.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = P20000000000000000000001 /* TinyPreviewQuickLook.appex */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		A30000000000000000000009 /* StructuredPreview.swift in App Sources */ = {isa = PBXBuildFile; fileRef = F30000000000000000000009 /* StructuredPreview.swift */; };
+		A40000000000000000000009 /* StructuredPreview.swift in Extension Sources */ = {isa = PBXBuildFile; fileRef = F30000000000000000000009 /* StructuredPreview.swift */; };
+		A3000000000000000000000A /* DelimitedTextParser.swift in App Sources */ = {isa = PBXBuildFile; fileRef = F3000000000000000000000A /* DelimitedTextParser.swift */; };
+		A4000000000000000000000A /* DelimitedTextParser.swift in Extension Sources */ = {isa = PBXBuildFile; fileRef = F3000000000000000000000A /* DelimitedTextParser.swift */; };
+		A3000000000000000000000B /* ContainerListing.swift in App Sources */ = {isa = PBXBuildFile; fileRef = F3000000000000000000000B /* ContainerListing.swift */; };
+		A4000000000000000000000B /* ContainerListing.swift in Extension Sources */ = {isa = PBXBuildFile; fileRef = F3000000000000000000000B /* ContainerListing.swift */; };
+		A20000000000000000000007 /* TextContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F20000000000000000000007 /* TextContentView.swift */; };
+		A20000000000000000000008 /* ContainerContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F20000000000000000000008 /* ContainerContentView.swift */; };
+		A20000000000000000000009 /* DelimitedContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F20000000000000000000009 /* DelimitedContentView.swift */; };
+		A2000000000000000000000A /* ImageContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2000000000000000000000A /* ImageContentView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -63,6 +73,13 @@
 		F30000000000000000000008 /* SyntaxHighlighter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyntaxHighlighter.swift; sourceTree = "<group>"; };
 		P10000000000000000000001 /* TinyPreview.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TinyPreview.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		P20000000000000000000001 /* TinyPreviewQuickLook.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = TinyPreviewQuickLook.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		F30000000000000000000009 /* StructuredPreview.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StructuredPreview.swift; sourceTree = "<group>"; };
+		F3000000000000000000000A /* DelimitedTextParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DelimitedTextParser.swift; sourceTree = "<group>"; };
+		F3000000000000000000000B /* ContainerListing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContainerListing.swift; sourceTree = "<group>"; };
+		F20000000000000000000007 /* TextContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextContentView.swift; sourceTree = "<group>"; };
+		F20000000000000000000008 /* ContainerContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContainerContentView.swift; sourceTree = "<group>"; };
+		F20000000000000000000009 /* DelimitedContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DelimitedContentView.swift; sourceTree = "<group>"; };
+		F2000000000000000000000A /* ImageContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageContentView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -74,8 +91,8 @@
 		G00000000000000000000001 = {isa = PBXGroup; children = (G50000000000000000000001 /* TinyPreview */, G40000000000000000000001 /* Products */, ); sourceTree = "<group>"; };
 		G50000000000000000000001 /* TinyPreview */ = {isa = PBXGroup; path = TinyPreview; sourceTree = "<group>"; children = (G10000000000000000000001 /* App */, G30000000000000000000001 /* Core */, G20000000000000000000001 /* QuickLook */, G70000000000000000000001 /* Support */, G80000000000000000000001 /* Resources */, ); };
 		G10000000000000000000001 /* App */ = {isa = PBXGroup; path = App; sourceTree = "<group>"; children = (F10000000000000000000001, F10000000000000000000002, F10000000000000000000003, ); };
-		G30000000000000000000001 /* Core */ = {isa = PBXGroup; path = Core; sourceTree = "<group>"; children = (F30000000000000000000001, F30000000000000000000002, F30000000000000000000003, F30000000000000000000004, F30000000000000000000005, F30000000000000000000006, F30000000000000000000007, F30000000000000000000008, ); };
-		G20000000000000000000001 /* QuickLook */ = {isa = PBXGroup; path = QuickLook; sourceTree = "<group>"; children = (F20000000000000000000001, F20000000000000000000002, F20000000000000000000003, F20000000000000000000004, F20000000000000000000005, ); };
+		G30000000000000000000001 /* Core */ = {isa = PBXGroup; path = Core; sourceTree = "<group>"; children = (F30000000000000000000001, F30000000000000000000002, F30000000000000000000003, F30000000000000000000004, F30000000000000000000005, F30000000000000000000006, F30000000000000000000007, F30000000000000000000008, F30000000000000000000009, F3000000000000000000000A, F3000000000000000000000B, ); };
+		G20000000000000000000001 /* QuickLook */ = {isa = PBXGroup; path = QuickLook; sourceTree = "<group>"; children = (F20000000000000000000001, F20000000000000000000002, F20000000000000000000003, F20000000000000000000004, F20000000000000000000005, F20000000000000000000007, F20000000000000000000008, F20000000000000000000009, F2000000000000000000000A, ); };
 		G70000000000000000000001 /* Support */ = {isa = PBXGroup; path = Support; sourceTree = "<group>"; children = (F20000000000000000000006, ); };
 		G80000000000000000000001 /* Resources */ = {isa = PBXGroup; path = Resources; sourceTree = "<group>"; children = (F10000000000000000000005 /* AppIcon.icon */, ); };
 		G40000000000000000000001 /* Products */ = {isa = PBXGroup; name = Products; sourceTree = "<group>"; children = (P10000000000000000000001, P20000000000000000000001, ); };
@@ -96,8 +113,8 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
-		B10000000000000000000001 = {isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (A10000000000000000000001, A10000000000000000000002, A10000000000000000000003, A30000000000000000000001, A30000000000000000000002, A30000000000000000000003, A30000000000000000000004, A30000000000000000000005, A30000000000000000000006, A30000000000000000000007, A30000000000000000000008, ); runOnlyForDeploymentPostprocessing = 0; };
-		B20000000000000000000001 = {isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (A20000000000000000000001, A20000000000000000000002, A20000000000000000000003, A20000000000000000000004, A20000000000000000000005, A40000000000000000000001, A40000000000000000000002, A40000000000000000000003, A40000000000000000000004, A40000000000000000000005, A40000000000000000000006, A40000000000000000000007, A40000000000000000000008, ); runOnlyForDeploymentPostprocessing = 0; };
+		B10000000000000000000001 = {isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (A10000000000000000000001, A10000000000000000000002, A10000000000000000000003, A30000000000000000000001, A30000000000000000000002, A30000000000000000000003, A30000000000000000000004, A30000000000000000000005, A30000000000000000000006, A30000000000000000000007, A30000000000000000000008, A30000000000000000000009, A3000000000000000000000A, A3000000000000000000000B, ); runOnlyForDeploymentPostprocessing = 0; };
+		B20000000000000000000001 = {isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (A20000000000000000000001, A20000000000000000000002, A20000000000000000000003, A20000000000000000000004, A20000000000000000000005, A20000000000000000000007, A20000000000000000000008, A20000000000000000000009, A2000000000000000000000A, A40000000000000000000001, A40000000000000000000002, A40000000000000000000003, A40000000000000000000004, A40000000000000000000005, A40000000000000000000006, A40000000000000000000007, A40000000000000000000008, A40000000000000000000009, A4000000000000000000000A, A4000000000000000000000B, ); runOnlyForDeploymentPostprocessing = 0; };
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
