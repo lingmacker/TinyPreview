@@ -137,10 +137,19 @@ jobs:
           CHECKSUM_PATH: ${{ steps.package.outputs.checksum }}
           RELEASE_NOTES: ${{ steps.notes.outputs.path }}
         run: |
-          gh release create "$GITHUB_REF_NAME" \
+          set -euo pipefail
+          if ! gh release view "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release create "$GITHUB_REF_NAME" \
+              --repo "$GITHUB_REPOSITORY" \
+              --verify-tag \
+              --title "TinyPreview $VERSION"
+          fi
+          gh release upload "$GITHUB_REF_NAME" \
             "$ARCHIVE_PATH" \
             "$CHECKSUM_PATH" \
             --repo "$GITHUB_REPOSITORY" \
-            --verify-tag \
+            --clobber
+          gh release edit "$GITHUB_REF_NAME" \
+            --repo "$GITHUB_REPOSITORY" \
             --title "TinyPreview $VERSION" \
             --notes-file "$RELEASE_NOTES"

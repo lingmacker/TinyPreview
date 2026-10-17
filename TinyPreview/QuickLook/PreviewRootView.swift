@@ -25,8 +25,6 @@ struct PreviewRootView: View {
             TextContentView(preview: preview, model: model)
         case .image(let preview):
             ImageContentView(preview: preview)
-        case .delimited(let preview):
-            DelimitedContentView(preview: preview)
         case .container(let preview):
             ContainerContentView(preview: preview)
         case .message(let message):

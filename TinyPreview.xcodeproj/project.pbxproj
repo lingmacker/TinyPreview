@@ -34,14 +34,24 @@
 		A50000000000000000000001 /* TinyPreviewQuickLook.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = P20000000000000000000001 /* TinyPreviewQuickLook.appex */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		A30000000000000000000009 /* StructuredPreview.swift in App Sources */ = {isa = PBXBuildFile; fileRef = F30000000000000000000009 /* StructuredPreview.swift */; };
 		A40000000000000000000009 /* StructuredPreview.swift in Extension Sources */ = {isa = PBXBuildFile; fileRef = F30000000000000000000009 /* StructuredPreview.swift */; };
-		A3000000000000000000000A /* DelimitedTextParser.swift in App Sources */ = {isa = PBXBuildFile; fileRef = F3000000000000000000000A /* DelimitedTextParser.swift */; };
-		A4000000000000000000000A /* DelimitedTextParser.swift in Extension Sources */ = {isa = PBXBuildFile; fileRef = F3000000000000000000000A /* DelimitedTextParser.swift */; };
 		A3000000000000000000000B /* ContainerListing.swift in App Sources */ = {isa = PBXBuildFile; fileRef = F3000000000000000000000B /* ContainerListing.swift */; };
 		A4000000000000000000000B /* ContainerListing.swift in Extension Sources */ = {isa = PBXBuildFile; fileRef = F3000000000000000000000B /* ContainerListing.swift */; };
 		A20000000000000000000007 /* TextContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F20000000000000000000007 /* TextContentView.swift */; };
 		A20000000000000000000008 /* ContainerContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F20000000000000000000008 /* ContainerContentView.swift */; };
-		A20000000000000000000009 /* DelimitedContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F20000000000000000000009 /* DelimitedContentView.swift */; };
 		A2000000000000000000000A /* ImageContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2000000000000000000000A /* ImageContentView.swift */; };
+		A70000000000000000000001 /* PreviewModels.swift in Test Sources */ = {isa = PBXBuildFile; fileRef = F30000000000000000000001 /* PreviewModels.swift */; };
+		A70000000000000000000002 /* SharedSettings.swift in Test Sources */ = {isa = PBXBuildFile; fileRef = F30000000000000000000002 /* SharedSettings.swift */; };
+		A70000000000000000000003 /* ContentClassifier.swift in Test Sources */ = {isa = PBXBuildFile; fileRef = F30000000000000000000003 /* ContentClassifier.swift */; };
+		A70000000000000000000004 /* FolderScanner.swift in Test Sources */ = {isa = PBXBuildFile; fileRef = F30000000000000000000004 /* FolderScanner.swift */; };
+		A70000000000000000000005 /* ArchiveScanner.swift in Test Sources */ = {isa = PBXBuildFile; fileRef = F30000000000000000000005 /* ArchiveScanner.swift */; };
+		A70000000000000000000006 /* ImagePreviewLoader.swift in Test Sources */ = {isa = PBXBuildFile; fileRef = F30000000000000000000006 /* ImagePreviewLoader.swift */; };
+		A70000000000000000000007 /* PreviewLoader.swift in Test Sources */ = {isa = PBXBuildFile; fileRef = F30000000000000000000007 /* PreviewLoader.swift */; };
+		A70000000000000000000008 /* SyntaxHighlighter.swift in Test Sources */ = {isa = PBXBuildFile; fileRef = F30000000000000000000008 /* SyntaxHighlighter.swift */; };
+		A70000000000000000000009 /* StructuredPreview.swift in Test Sources */ = {isa = PBXBuildFile; fileRef = F30000000000000000000009 /* StructuredPreview.swift */; };
+		A7000000000000000000000B /* ContainerListing.swift in Test Sources */ = {isa = PBXBuildFile; fileRef = F3000000000000000000000B /* ContainerListing.swift */; };
+		A7000000000000000000000C /* ContentClassifierTests.swift in Test Sources */ = {isa = PBXBuildFile; fileRef = F70000000000000000000001 /* ContentClassifierTests.swift */; };
+		A7000000000000000000000D /* PreviewEnhancementTests.swift in Test Sources */ = {isa = PBXBuildFile; fileRef = F70000000000000000000002 /* PreviewEnhancementTests.swift */; };
+		A7000000000000000000000E /* PreviewLoaderTests.swift in Test Sources */ = {isa = PBXBuildFile; fileRef = F70000000000000000000003 /* PreviewLoaderTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -74,37 +84,43 @@
 		P10000000000000000000001 /* TinyPreview.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TinyPreview.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		P20000000000000000000001 /* TinyPreviewQuickLook.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = TinyPreviewQuickLook.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		F30000000000000000000009 /* StructuredPreview.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StructuredPreview.swift; sourceTree = "<group>"; };
-		F3000000000000000000000A /* DelimitedTextParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DelimitedTextParser.swift; sourceTree = "<group>"; };
 		F3000000000000000000000B /* ContainerListing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContainerListing.swift; sourceTree = "<group>"; };
 		F20000000000000000000007 /* TextContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextContentView.swift; sourceTree = "<group>"; };
 		F20000000000000000000008 /* ContainerContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContainerContentView.swift; sourceTree = "<group>"; };
-		F20000000000000000000009 /* DelimitedContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DelimitedContentView.swift; sourceTree = "<group>"; };
 		F2000000000000000000000A /* ImageContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageContentView.swift; sourceTree = "<group>"; };
+		F70000000000000000000001 /* ContentClassifierTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentClassifierTests.swift; sourceTree = "<group>"; };
+		F70000000000000000000002 /* PreviewEnhancementTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewEnhancementTests.swift; sourceTree = "<group>"; };
+		F70000000000000000000003 /* PreviewLoaderTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewLoaderTests.swift; sourceTree = "<group>"; };
+		P30000000000000000000001 /* TinyPreviewCoreTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TinyPreviewCoreTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		B10000000000000000000002 = {isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
 		B20000000000000000000002 = {isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
+		B30000000000000000000002 = {isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		G00000000000000000000001 = {isa = PBXGroup; children = (G50000000000000000000001 /* TinyPreview */, G40000000000000000000001 /* Products */, ); sourceTree = "<group>"; };
+		G00000000000000000000001 = {isa = PBXGroup; children = (G50000000000000000000001 /* TinyPreview */, G90000000000000000000001 /* Tests */, G40000000000000000000001 /* Products */, ); sourceTree = "<group>"; };
 		G50000000000000000000001 /* TinyPreview */ = {isa = PBXGroup; path = TinyPreview; sourceTree = "<group>"; children = (G10000000000000000000001 /* App */, G30000000000000000000001 /* Core */, G20000000000000000000001 /* QuickLook */, G70000000000000000000001 /* Support */, G80000000000000000000001 /* Resources */, ); };
 		G10000000000000000000001 /* App */ = {isa = PBXGroup; path = App; sourceTree = "<group>"; children = (F10000000000000000000001, F10000000000000000000002, F10000000000000000000003, ); };
-		G30000000000000000000001 /* Core */ = {isa = PBXGroup; path = Core; sourceTree = "<group>"; children = (F30000000000000000000001, F30000000000000000000002, F30000000000000000000003, F30000000000000000000004, F30000000000000000000005, F30000000000000000000006, F30000000000000000000007, F30000000000000000000008, F30000000000000000000009, F3000000000000000000000A, F3000000000000000000000B, ); };
-		G20000000000000000000001 /* QuickLook */ = {isa = PBXGroup; path = QuickLook; sourceTree = "<group>"; children = (F20000000000000000000001, F20000000000000000000002, F20000000000000000000003, F20000000000000000000004, F20000000000000000000005, F20000000000000000000007, F20000000000000000000008, F20000000000000000000009, F2000000000000000000000A, ); };
+		G30000000000000000000001 /* Core */ = {isa = PBXGroup; path = Core; sourceTree = "<group>"; children = (F30000000000000000000001, F30000000000000000000002, F30000000000000000000003, F30000000000000000000004, F30000000000000000000005, F30000000000000000000006, F30000000000000000000007, F30000000000000000000008, F30000000000000000000009, F3000000000000000000000B, ); };
+		G20000000000000000000001 /* QuickLook */ = {isa = PBXGroup; path = QuickLook; sourceTree = "<group>"; children = (F20000000000000000000001, F20000000000000000000002, F20000000000000000000003, F20000000000000000000004, F20000000000000000000005, F20000000000000000000007, F20000000000000000000008, F2000000000000000000000A, ); };
 		G70000000000000000000001 /* Support */ = {isa = PBXGroup; path = Support; sourceTree = "<group>"; children = (F20000000000000000000006, ); };
 		G80000000000000000000001 /* Resources */ = {isa = PBXGroup; path = Resources; sourceTree = "<group>"; children = (F10000000000000000000005 /* AppIcon.icon */, ); };
-		G40000000000000000000001 /* Products */ = {isa = PBXGroup; name = Products; sourceTree = "<group>"; children = (P10000000000000000000001, P20000000000000000000001, ); };
+		G40000000000000000000001 /* Products */ = {isa = PBXGroup; name = Products; sourceTree = "<group>"; children = (P10000000000000000000001, P20000000000000000000001, P30000000000000000000001, ); };
+		G90000000000000000000001 /* Tests */ = {isa = PBXGroup; path = Tests; sourceTree = "<group>"; children = (G90000000000000000000002 /* TinyPreviewCoreTests */, ); };
+		G90000000000000000000002 /* TinyPreviewCoreTests */ = {isa = PBXGroup; path = TinyPreviewCoreTests; sourceTree = "<group>"; children = (F70000000000000000000001, F70000000000000000000002, F70000000000000000000003, ); };
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
 		T10000000000000000000001 /* TinyPreview */ = {isa = PBXNativeTarget; buildConfigurationList = CL10000000000000000000001; buildPhases = (B10000000000000000000001, B10000000000000000000002, B10000000000000000000003, B10000000000000000000004, ); buildRules = (); dependencies = (D10000000000000000000001, ); name = TinyPreview; productName = TinyPreview; productReference = P10000000000000000000001; productType = "com.apple.product-type.application"; };
 		T20000000000000000000001 /* TinyPreviewQuickLook */ = {isa = PBXNativeTarget; buildConfigurationList = CL20000000000000000000001; buildPhases = (B20000000000000000000001, B20000000000000000000002, B20000000000000000000003, ); buildRules = (); dependencies = (); name = TinyPreviewQuickLook; productName = TinyPreviewQuickLook; productReference = P20000000000000000000001; productType = "com.apple.product-type.app-extension"; };
+		T30000000000000000000001 /* TinyPreviewCoreTests */ = {isa = PBXNativeTarget; buildConfigurationList = CL30000000000000000000001; buildPhases = (B30000000000000000000001, B30000000000000000000002, ); buildRules = (); dependencies = (); name = TinyPreviewCoreTests; productName = TinyPreviewCoreTests; productReference = P30000000000000000000001; productType = "com.apple.product-type.bundle.unit-test"; };
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
-		PR0000000000000000000001 /* Project object */ = {isa = PBXProject; attributes = {BuildIndependentTargetsInParallel = 1; LastSwiftUpdateCheck = 2700; LastUpgradeCheck = 2700; TargetAttributes = {T10000000000000000000001 = {CreatedOnToolsVersion = 27.0; }; T20000000000000000000001 = {CreatedOnToolsVersion = 27.0; }; }; }; buildConfigurationList = CL00000000000000000000001; compatibilityVersion = "Xcode 14.0"; developmentRegion = zh_CN; hasScannedForEncodings = 0; knownRegions = (Base, zh_CN, ); mainGroup = G00000000000000000000001; productRefGroup = G40000000000000000000001; projectDirPath = ""; projectRoot = ""; targets = (T10000000000000000000001, T20000000000000000000001, ); };
+		PR0000000000000000000001 /* Project object */ = {isa = PBXProject; attributes = {BuildIndependentTargetsInParallel = 1; LastSwiftUpdateCheck = 2700; LastUpgradeCheck = 2700; TargetAttributes = {T10000000000000000000001 = {CreatedOnToolsVersion = 27.0; }; T20000000000000000000001 = {CreatedOnToolsVersion = 27.0; }; }; }; buildConfigurationList = CL00000000000000000000001; compatibilityVersion = "Xcode 14.0"; developmentRegion = zh_CN; hasScannedForEncodings = 0; knownRegions = (Base, zh_CN, ); mainGroup = G00000000000000000000001; productRefGroup = G40000000000000000000001; projectDirPath = ""; projectRoot = ""; targets = (T10000000000000000000001, T20000000000000000000001, T30000000000000000000001, ); };
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
@@ -113,8 +129,9 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
-		B10000000000000000000001 = {isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (A10000000000000000000001, A10000000000000000000002, A10000000000000000000003, A30000000000000000000001, A30000000000000000000002, A30000000000000000000003, A30000000000000000000004, A30000000000000000000005, A30000000000000000000006, A30000000000000000000007, A30000000000000000000008, A30000000000000000000009, A3000000000000000000000A, A3000000000000000000000B, ); runOnlyForDeploymentPostprocessing = 0; };
-		B20000000000000000000001 = {isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (A20000000000000000000001, A20000000000000000000002, A20000000000000000000003, A20000000000000000000004, A20000000000000000000005, A20000000000000000000007, A20000000000000000000008, A20000000000000000000009, A2000000000000000000000A, A40000000000000000000001, A40000000000000000000002, A40000000000000000000003, A40000000000000000000004, A40000000000000000000005, A40000000000000000000006, A40000000000000000000007, A40000000000000000000008, A40000000000000000000009, A4000000000000000000000A, A4000000000000000000000B, ); runOnlyForDeploymentPostprocessing = 0; };
+		B10000000000000000000001 = {isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (A10000000000000000000001, A10000000000000000000002, A10000000000000000000003, A30000000000000000000001, A30000000000000000000002, A30000000000000000000003, A30000000000000000000004, A30000000000000000000005, A30000000000000000000006, A30000000000000000000007, A30000000000000000000008, A30000000000000000000009, A3000000000000000000000B, ); runOnlyForDeploymentPostprocessing = 0; };
+		B20000000000000000000001 = {isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (A20000000000000000000001, A20000000000000000000002, A20000000000000000000003, A20000000000000000000004, A20000000000000000000005, A20000000000000000000007, A20000000000000000000008, A2000000000000000000000A, A40000000000000000000001, A40000000000000000000002, A40000000000000000000003, A40000000000000000000004, A40000000000000000000005, A40000000000000000000006, A40000000000000000000007, A40000000000000000000008, A40000000000000000000009, A4000000000000000000000B, ); runOnlyForDeploymentPostprocessing = 0; };
+		B30000000000000000000001 /* Test Sources */ = {isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (A70000000000000000000001, A70000000000000000000002, A70000000000000000000003, A70000000000000000000004, A70000000000000000000005, A70000000000000000000006, A70000000000000000000007, A70000000000000000000008, A70000000000000000000009, A7000000000000000000000B, A7000000000000000000000C, A7000000000000000000000D, A7000000000000000000000E, ); runOnlyForDeploymentPostprocessing = 0; };
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -128,12 +145,15 @@
 		BC1000000000000000000002 /* App Release */ = {isa = XCBuildConfiguration; buildSettings = {ARCHS = arm64; ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon; CODE_SIGN_IDENTITY = "-"; CODE_SIGN_STYLE = Manual; COMBINE_HIDPI_IMAGES = YES; CURRENT_PROJECT_VERSION = 1; GENERATE_INFOPLIST_FILE = YES; INFOPLIST_KEY_CFBundleDisplayName = TinyPreview; INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities"; INFOPLIST_KEY_NSHumanReadableCopyright = "Copyright © 2026 TinyPreview contributors."; INFOPLIST_KEY_NSPrincipalClass = NSApplication; LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks"; MARKETING_VERSION = 1.0; OTHER_LDFLAGS = "$(inherited) -larchive"; PRODUCT_BUNDLE_IDENTIFIER = com.lingmacker.TinyPreview; PRODUCT_NAME = TinyPreview; SWIFT_EMIT_LOC_STRINGS = YES; }; name = Release; };
 		BC2000000000000000000001 /* Extension Debug */ = {isa = XCBuildConfiguration; buildSettings = {APPLICATION_EXTENSION_API_ONLY = YES; ARCHS = arm64; CODE_SIGN_IDENTITY = "-"; CODE_SIGN_STYLE = Manual; CURRENT_PROJECT_VERSION = 1; ENABLE_APP_SANDBOX = YES; ENABLE_USER_SELECTED_FILES = readonly; GENERATE_INFOPLIST_FILE = NO; INFOPLIST_FILE = "TinyPreview/Support/QuickLook-Info.plist"; LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @executable_path/../../../../Frameworks"; MARKETING_VERSION = 1.0; OTHER_LDFLAGS = "$(inherited) -larchive"; PRODUCT_BUNDLE_IDENTIFIER = com.lingmacker.TinyPreview.QuickLook; PRODUCT_NAME = TinyPreviewQuickLook; SKIP_INSTALL = YES; SWIFT_EMIT_LOC_STRINGS = YES; }; name = Debug; };
 		BC2000000000000000000002 /* Extension Release */ = {isa = XCBuildConfiguration; buildSettings = {APPLICATION_EXTENSION_API_ONLY = YES; ARCHS = arm64; CODE_SIGN_IDENTITY = "-"; CODE_SIGN_STYLE = Manual; CURRENT_PROJECT_VERSION = 1; ENABLE_APP_SANDBOX = YES; ENABLE_USER_SELECTED_FILES = readonly; GENERATE_INFOPLIST_FILE = NO; INFOPLIST_FILE = "TinyPreview/Support/QuickLook-Info.plist"; LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @executable_path/../../../../Frameworks"; MARKETING_VERSION = 1.0; OTHER_LDFLAGS = "$(inherited) -larchive"; PRODUCT_BUNDLE_IDENTIFIER = com.lingmacker.TinyPreview.QuickLook; PRODUCT_NAME = TinyPreviewQuickLook; SKIP_INSTALL = YES; SWIFT_EMIT_LOC_STRINGS = YES; }; name = Release; };
+		BC3000000000000000000001 /* Tests Debug */ = {isa = XCBuildConfiguration; buildSettings = {ARCHS = arm64; CODE_SIGN_IDENTITY = "-"; CODE_SIGN_STYLE = Manual; GENERATE_INFOPLIST_FILE = YES; LD_RUNPATH_SEARCH_PATHS = "$(inherited) @loader_path/../Frameworks"; OTHER_LDFLAGS = "$(inherited) -larchive"; PRODUCT_BUNDLE_IDENTIFIER = com.lingmacker.TinyPreview.CoreTests; PRODUCT_NAME = "$(TARGET_NAME)"; }; name = Debug; };
+		BC3000000000000000000002 /* Tests Release */ = {isa = XCBuildConfiguration; buildSettings = {ARCHS = arm64; CODE_SIGN_IDENTITY = "-"; CODE_SIGN_STYLE = Manual; GENERATE_INFOPLIST_FILE = YES; LD_RUNPATH_SEARCH_PATHS = "$(inherited) @loader_path/../Frameworks"; OTHER_LDFLAGS = "$(inherited) -larchive"; PRODUCT_BUNDLE_IDENTIFIER = com.lingmacker.TinyPreview.CoreTests; PRODUCT_NAME = "$(TARGET_NAME)"; }; name = Release; };
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
 		CL00000000000000000000001 = {isa = XCConfigurationList; buildConfigurations = (BC0000000000000000000001, BC0000000000000000000002, ); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
 		CL10000000000000000000001 = {isa = XCConfigurationList; buildConfigurations = (BC1000000000000000000001, BC1000000000000000000002, ); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
 		CL20000000000000000000001 = {isa = XCConfigurationList; buildConfigurations = (BC2000000000000000000001, BC2000000000000000000002, ); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
+		CL30000000000000000000001 /* Tests */ = {isa = XCConfigurationList; buildConfigurations = (BC3000000000000000000001, BC3000000000000000000002, ); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
 /* End XCConfigurationList section */
 	};
 	rootObject = PR0000000000000000000001 /* Project object */;

@@ -1,6 +1,5 @@
 import Foundation
 import XCTest
-@testable import TinyPreviewCore
 
 final class PreviewLoaderTests: XCTestCase {
     func testArbitraryExtensionUnicodeTextPreviews() throws {

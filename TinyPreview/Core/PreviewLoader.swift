@@ -77,11 +77,9 @@ public enum PreviewLoader {
                     allowPartial: allowPartialText
                 )
 
-            case .text, .delimited:
-                let isDelimited: Bool
-                if case .delimited = classification.content { isDelimited = true } else { isDelimited = false }
-                if !allowPartialText || isDelimited,
-                   let refusal = sizeRefusal(url, classification: classification, category: .text, limits: limits, canPreviewPrefix: !isDelimited) {
+            case .text:
+                if !allowPartialText,
+                   let refusal = sizeRefusal(url, classification: classification, category: .text, limits: limits, canPreviewPrefix: true) {
                     return .message(refusal)
                 }
                 return loadText(
@@ -92,7 +90,7 @@ public enum PreviewLoader {
                     started: started,
                     budget: budget,
                     maximumBytes: limits.textBytes,
-                    allowPartial: allowPartialText && !isDelimited
+                    allowPartial: allowPartialText
                 )
 
             case .unsupported:
@@ -124,13 +122,11 @@ public enum PreviewLoader {
             let data = try readBounded(url, maximumBytes: cap)
             let truncated = data.count > cap
             if truncated && !allowPartial {
-                let canPreviewPrefix: Bool
-                if case .delimited = classification.content { canPreviewPrefix = false } else { canPreviewPrefix = true }
                 return .message(PreviewMessage(
                     kind: .refused, title: "已停止文本预览",
-                    detail: canPreviewPrefix ? "内容超过读取或内存安全预算，可仅预览开头。" : "表格超过读取或内存安全预算。",
+                    detail: "内容超过读取或内存安全预算，可仅预览开头。",
                     fileName: url.lastPathComponent, systemType: classification.systemType,
-                    actualBytes: classification.fileSize, limitBytes: Int64(cap), canPreviewPrefix: canPreviewPrefix
+                    actualBytes: classification.fileSize, limitBytes: Int64(cap), canPreviewPrefix: true
                 ))
             }
             let payload = Data(data.prefix(cap))
@@ -143,15 +139,8 @@ public enum PreviewLoader {
                 do { formatted = try StructuredPreview.json(text, maximumBytes: Int(min(16 * 1_048_576, budget.maximumWorkingBytes / 4))) }
                 catch { notice = "JSON 格式化不可用：语法无效或超过安全预算；显示原文。" }
             }
-            let result: PreviewResult
-            if !truncated, case .delimited(let separator) = classification.content {
-                do { result = .delimited(try DelimitedTextParser.parse(text, separator: separator, budget: budget)) }
-                catch { result = .text(TextPreview(text: text, encoding: encoding, language: nil, notice: "表格预览不可用：\(error.localizedDescription)；显示原文。")) }
-            } else {
-                result = .text(TextPreview(text: text, encoding: encoding, language: language, formattedText: formatted, notice: notice, isTruncated: truncated))
-            }
             guard !timedOut(started, budget: budget) else { return .message(timeoutRefusal(url, category: category)) }
-            return result
+            return .text(TextPreview(text: text, encoding: encoding, language: language, formattedText: formatted, notice: notice, isTruncated: truncated))
         } catch {
             return .message(corrupt(url, systemType: classification.systemType, detail: error.localizedDescription))
         }

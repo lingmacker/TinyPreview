@@ -8,7 +8,6 @@ public enum ClassifiedContent: Equatable, Sendable {
     case image(isSVG: Bool)
     case source(SourceLanguage)
     case propertyList
-    case delimited(separator: Character)
     case text
     case unsupported
 }
@@ -40,6 +39,12 @@ public enum ContentClassifier {
             return Classification(content: .folder, fileSize: nil, systemType: systemType)
         }
 
+        if ["csv", "tsv"].contains(url.pathExtension.lowercased()) ||
+            values.contentType?.conforms(to: .commaSeparatedText) == true ||
+            values.contentType?.conforms(to: .tabSeparatedText) == true {
+            return Classification(content: .unsupported, fileSize: fileSize, systemType: systemType)
+        }
+
         let prefix = try readPrefix(of: url, maximumBytes: sniffBytes)
         if isArchive(prefix, url: url) {
             return Classification(content: .archive, fileSize: fileSize, systemType: systemType)
@@ -52,10 +57,6 @@ public enum ContentClassifier {
         }
         if prefix.starts(with: Array("bplist00".utf8)) || url.pathExtension.lowercased() == "plist" {
             return Classification(content: .propertyList, fileSize: fileSize, systemType: systemType)
-        }
-        if ["csv", "tsv"].contains(url.pathExtension.lowercased()) {
-            let separator: Character = url.pathExtension.lowercased() == "tsv" ? "\t" : ","
-            return Classification(content: .delimited(separator: separator), fileSize: fileSize, systemType: systemType)
         }
         if let language = SourceLanguageDetector.detect(url: url, prefix: prefix) {
             return Classification(content: .source(language), fileSize: fileSize, systemType: systemType)

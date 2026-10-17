@@ -1,7 +1,6 @@
 import AppKit
 import Foundation
 import ImageIO
-import UniformTypeIdentifiers
 
 public enum ImagePreviewError: LocalizedError {
     case corrupt
@@ -31,11 +30,7 @@ public enum ImagePreviewLoader {
             return ImagePreview(
                 data: data,
                 isSVG: true,
-                firstFrameOnly: false,
-                pixelWidth: 0,
-                pixelHeight: 0,
-                formatName: "SVG",
-                hasAlpha: nil
+                firstFrameOnly: false
             )
         }
 
@@ -64,18 +59,13 @@ public enum ImagePreviewLoader {
             totalWorkingSet!.partialValue > budget.maximumWorkingBytes
         )
 
-        guard let firstFrame = CGImageSourceCreateImageAtIndex(source, 0, nil) else {
+        guard CGImageSourceCreateImageAtIndex(source, 0, nil) != nil else {
             throw ImagePreviewError.corrupt
         }
         return ImagePreview(
             data: data,
             isSVG: false,
-            firstFrameOnly: firstFrameOnly,
-            pixelWidth: width,
-            pixelHeight: height,
-            formatName: (CGImageSourceGetType(source) as String?).flatMap { UTType($0)?.preferredFilenameExtension?.uppercased() } ?? "图片",
-            hasAlpha: (properties[kCGImagePropertyHasAlpha] as? NSNumber)?.boolValue ??
-                [.first, .last, .premultipliedFirst, .premultipliedLast, .alphaOnly].contains(firstFrame.alphaInfo)
+            firstFrameOnly: firstFrameOnly
         )
     }
 

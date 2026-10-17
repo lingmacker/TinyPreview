@@ -130,21 +130,10 @@ public struct TextPreview: Sendable {
     public var wrapsLines: Bool { language == nil || language == .markdown }
 }
 
-public struct DelimitedPreview: Sendable {
-    public let rows: [[String]]
-    public let columnCount: Int
-    public let isTruncated: Bool
-    public let notice: String?
-}
-
 public struct ImagePreview: @unchecked Sendable {
     public let data: Data
     public let isSVG: Bool
     public let firstFrameOnly: Bool
-    public let pixelWidth: Int
-    public let pixelHeight: Int
-    public let formatName: String
-    public let hasAlpha: Bool?
 }
 
 public struct ContainerEntry: Identifiable, Equatable, Sendable {
@@ -218,7 +207,6 @@ public struct PreviewMessage: Sendable {
 public enum PreviewResult: @unchecked Sendable {
     case text(TextPreview)
     case image(ImagePreview)
-    case delimited(DelimitedPreview)
     case container(ContainerPreview)
     case message(PreviewMessage)
 }

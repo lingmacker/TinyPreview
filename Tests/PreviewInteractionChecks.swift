@@ -11,9 +11,9 @@ struct PreviewInteractionChecks {
         NSApplication.shared.setActivationPolicy(.accessory)
         let output = URL(fileURLWithPath: ".build/preview-checks", isDirectory: true)
         try FileManager.default.createDirectory(at: output, withIntermediateDirectories: true)
-        try checkTableCopyAndImageZoom()
+        try checkImageZoom()
         try capturePreviews(in: output)
-        print("PASS: content-only text previews, automatic Markdown/JSON rendering, cell-copy shortcut, image overlays, zoom and preview captures.")
+        print("PASS: content-only text previews, automatic Markdown/JSON rendering, metadata-free image previews, zoom and preview captures.")
     }
 
     @MainActor private static func check(_ value: @autoclosure () -> Bool, _ message: String) throws {
@@ -41,22 +41,7 @@ struct PreviewInteractionChecks {
         [view] + view.subviews.flatMap(descendants)
     }
 
-    @MainActor private static func checkTableCopyAndImageZoom() throws {
-        let tablePreview = DelimitedPreview(rows: [["name", "note"], ["Alice", "one,two"]], columnCount: 2, isTruncated: false, notice: nil)
-        print("Hosting native table…")
-        let (window, hosting) = host(DelimitedTableView(preview: tablePreview))
-        print("Checking native table copy…")
-        defer { window.close() }
-        guard let table = descendants(hosting).compactMap({ $0 as? CellCopyTableView }).first else { throw CocoaError(.coderInvalidValue) }
-        var copied: (Int, Int)?
-        table.onCopy = { copied = ($0, $1) }
-        table.selectRowIndexes(IndexSet(integer: 1), byExtendingSelection: false)
-        let copyKey = NSEvent.keyEvent(with: .keyDown, location: .zero, modifierFlags: .command, timestamp: 0,
-            windowNumber: window.windowNumber, context: nil, characters: "c", charactersIgnoringModifiers: "c", isARepeat: false, keyCode: 8)!
-        try check(table.performKeyEquivalent(with: copyKey), "⌘C must copy the selected cell")
-        try check(copied?.0 == 1 && copied?.1 == 0, "Copy must address the selected cell, not the whole file")
-        try check(table.numberOfRows == 2 && table.tableColumns.count == 2, "Native table dimensions must match records")
-
+    @MainActor private static func checkImageZoom() throws {
         let svg = Data(##"<svg xmlns="http://www.w3.org/2000/svg" width="160" height="120"><circle cx="80" cy="60" r="35" fill="#F5C842"/></svg>"##.utf8)
         print("Loading SVG fixture…")
         let preview = try ImagePreviewLoader.load(data: svg, isSVG: true)
@@ -104,8 +89,7 @@ struct PreviewInteractionChecks {
         try Data("hidden".utf8).write(to: fixtures.appendingPathComponent("folder/.env"))
         let samples: [(String, Data)] = [
             ("sample.json", Data(#"{"name":"TinyPreview","count":9007199254740993,"enabled":true,"items":["text","archive","image"]}"#.utf8)),
-            ("sample.md", Data("# TinyPreview\n\nRead-only **Markdown** preview.\n\n| Format | Status |\n| --- | --- |\n| CSV | Ready |\n\n```swift\nlet value = 42\nprint(value)\n```\n".utf8)),
-            ("sample.csv", Data("name,note,count\nAlice,\"one,two\",3\nBob,\"first\nsecond\",8\n".utf8)),
+            ("sample.md", Data("# TinyPreview\n\nRead-only **Markdown** preview.\n\n| Format | Status |\n| --- | --- |\n| JSON | Ready |\n\n```swift\nlet value = 42\nprint(value)\n```\n".utf8)),
             ("sample.svg", Data(##"<svg xmlns="http://www.w3.org/2000/svg" width="320" height="240"><circle cx="160" cy="120" r="80" fill="#F5C842"/></svg>"##.utf8)),
             ("sample.png", try rasterFixture(.png)),
             ("sample.jpg", try rasterFixture(.jpeg)),
@@ -122,7 +106,7 @@ struct PreviewInteractionChecks {
             warningHost.cacheDisplay(in: warningHost.bounds, to: bitmap)
             try bitmap.representation(using: .png, properties: [:])!.write(to: output.appendingPathComponent("folder-incomplete.png"))
         }
-        for name in ["sample.json", "sample.md", "sample.csv", "sample.svg", "sample.png", "sample.jpg", "folder", "large.txt"] {
+        for name in ["sample.json", "sample.md", "sample.svg", "sample.png", "sample.jpg", "folder", "large.txt"] {
             print("Capturing \(name)…")
             let model = PreviewViewModel()
             model.load(fixtures.appendingPathComponent(name), allowPartialText: name == "large.txt")
@@ -156,19 +140,14 @@ struct PreviewInteractionChecks {
                         try check(abs(visible.height - hosting.bounds.height) < 1, "Text content must use the full height without a duplicate title or toolbar")
                     }
                 }
-                if case .image(let preview) = model.result {
+                if case .image = model.result {
                     guard let scroll = descendants(hosting).compactMap({ $0 as? ImageScrollView }).first else { throw CocoaError(.coderInvalidValue) }
                     let region = scroll.convert(scroll.bounds, to: hosting)
                     try check(abs(region.height - hosting.bounds.height) < 1, "Image canvas must use the full height without a top information bar")
                     try check(!descendants(hosting).contains { $0 is NSSegmentedControl || $0 is NSPopUpButton }, "Image background switching must be removed")
                     let corner = NSPoint(x: hosting.bounds.maxX - 24, y: hosting.isFlipped ? hosting.bounds.maxY - 24 : hosting.bounds.minY + 24)
                     let target = hosting.hitTest(corner)
-                    try check(target === scroll || target?.isDescendant(of: scroll) == true, "The information overlay must not intercept image interaction")
-                    if !preview.isSVG {
-                        try check(preview.pixelWidth == 1280 && preview.pixelHeight == 960, "Raster metadata must match the actual image")
-                        try check(["PNG", "JPG", "JPEG"].contains(preview.formatName), "Raster format must be identified")
-                        try check(preview.hasAlpha != nil, "Raster alpha metadata must be available")
-                    }
+                    try check(target === scroll || target?.isDescendant(of: scroll) == true, "The full image canvas must remain interactive")
                 }
                 if case .container = model.result {
                     let children = descendants(hosting)
@@ -180,6 +159,16 @@ struct PreviewInteractionChecks {
                 }
                 guard let bitmap = hosting.bitmapImageRepForCachingDisplay(in: hosting.bounds) else { throw CocoaError(.coderInvalidValue) }
                 hosting.cacheDisplay(in: hosting.bounds, to: bitmap)
+                if case .image(let preview) = model.result, !preview.firstFrameOnly {
+                    let (bareWindow, bareHost) = host(ZoomableImageView(preview: preview).background(Color(nsColor: .windowBackgroundColor)), width: width, height: height)
+                    defer { bareWindow.close() }
+                    if label == "dark" { bareWindow.appearance = NSAppearance(named: .darkAqua) }
+                    pump()
+                    guard let bareBitmap = bareHost.bitmapImageRepForCachingDisplay(in: bareHost.bounds) else { throw CocoaError(.coderInvalidValue) }
+                    bareHost.cacheDisplay(in: bareHost.bounds, to: bareBitmap)
+                    try check(bitmap.representation(using: .png, properties: [:]) == bareBitmap.representation(using: .png, properties: [:]),
+                        "Image previews must match the bare canvas without a metadata overlay")
+                }
                 try bitmap.representation(using: .png, properties: [:])!.write(to: output.appendingPathComponent("\(name)-\(label).png"))
             }
         }

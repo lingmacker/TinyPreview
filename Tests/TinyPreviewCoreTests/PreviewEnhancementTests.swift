@@ -1,7 +1,6 @@
 import AppKit
 import Foundation
 import XCTest
-@testable import TinyPreviewCore
 
 final class PreviewEnhancementTests: XCTestCase {
     func testJSONFormattingPreservesTokensAndRejectsInvalidInput() throws {
@@ -15,23 +14,17 @@ final class PreviewEnhancementTests: XCTestCase {
         XCTAssertThrowsError(try StructuredPreview.json(source, maximumBytes: 8))
     }
 
-    func testCSVSupportsQuotedSeparatorsEscapedQuotesAndMultilineFields() throws {
-        let csv = "name,note\r\nAlice,\"one,two\"\r\nBob,\"a\"\"b\nc\"\r\n"
-        let result = try DelimitedTextParser.parse(csv, separator: ",")
-        XCTAssertEqual(result.rows, [["name", "note"], ["Alice", "one,two"], ["Bob", "a\"b\nc"]])
-        XCTAssertEqual(result.columnCount, 2)
-        XCTAssertFalse(result.isTruncated)
-    }
-
-    func testDelimitedLimitsAndMalformedInput() throws {
-        XCTAssertEqual(try DelimitedTextParser.parse("a\tb\t", separator: "\t").rows, [["a", "b", ""]])
-        XCTAssertEqual(try DelimitedTextParser.parse("", separator: ",").rows, [])
-        XCTAssertThrowsError(try DelimitedTextParser.parse("a,\"unfinished", separator: ","))
-        XCTAssertThrowsError(try DelimitedTextParser.parse("\"a\"x,b", separator: ","))
-        let result = try DelimitedTextParser.parse(String(repeating: "a,b\n", count: 1_001), separator: ",")
-        XCTAssertEqual(result.rows.count, 1_000)
-        XCTAssertTrue(result.isTruncated)
-        XCTAssertThrowsError(try DelimitedTextParser.parse(String(repeating: "x,", count: 100) + "x", separator: ","))
+    func testCSVAndTSVAreUnsupportedInsteadOfFallingBackToText() throws {
+        for ext in ["csv", "CSV", "tsv", "TSV"] {
+            try withFile(Data("name,note\nAlice,\"unfinished".utf8), extension: ext) { url in
+                XCTAssertEqual(try ContentClassifier.classify(url).content, .unsupported)
+                guard case .message(let message) = PreviewLoader.load(url, allowPartialText: true) else {
+                    return XCTFail("CSV/TSV must not enter text preview")
+                }
+                XCTAssertEqual(message.kind, .unsupported)
+                XCTAssertFalse(message.canPreviewPrefix)
+            }
+        }
     }
 
     func testBinaryPlistLoadsAsXMLWithoutChangingTheFile() throws {
@@ -45,19 +38,11 @@ final class PreviewEnhancementTests: XCTestCase {
         }
     }
 
-    func testStructuredLoadersAndMalformedFallback() throws {
+    func testJSONLoaderFormatsContent() throws {
         try withFile(Data("{\"n\":1}".utf8), extension: "json") { url in
             guard case .text(let value) = PreviewLoader.load(url, limits: .defaults) else { return XCTFail() }
             XCTAssertNotNil(value.formattedText)
             XCTAssertEqual(value.text, "{\"n\":1}")
-        }
-        try withFile(Data("a,\"broken".utf8), extension: "csv") { url in
-            guard case .text(let value) = PreviewLoader.load(url, limits: .defaults) else { return XCTFail("Expected raw fallback") }
-            XCTAssertNotNil(value.notice)
-        }
-        try withFile(Data("a\tb\n1\t2".utf8), extension: "tsv") { url in
-            guard case .delimited(let value) = PreviewLoader.load(url, limits: .defaults) else { return XCTFail("Expected table") }
-            XCTAssertEqual(value.rows, [["a", "b"], ["1", "2"]])
         }
     }
 
@@ -107,34 +92,23 @@ final class PreviewEnhancementTests: XCTestCase {
         XCTAssertEqual(ContainerListing.rows(entries, collapsed: [999]).count, entries.count)
     }
 
-    func testImageMetadataReportsFormatSizeAndAlpha() throws {
+    func testRasterImageLoadsWithoutChangingData() throws {
         let bitmap = NSBitmapImageRep(bitmapDataPlanes: nil, pixelsWide: 4, pixelsHigh: 3, bitsPerSample: 8,
             samplesPerPixel: 4, hasAlpha: true, isPlanar: false, colorSpaceName: .deviceRGB, bytesPerRow: 0, bitsPerPixel: 0)!
         let data = bitmap.representation(using: .png, properties: [:])!
         let value = try ImagePreviewLoader.load(data: data, isSVG: false)
-        XCTAssertEqual(value.formatName, "PNG")
-        XCTAssertEqual(value.pixelWidth, 4)
-        XCTAssertEqual(value.pixelHeight, 3)
-        XCTAssertEqual(value.hasAlpha, true)
-        XCTAssertEqual(value.data.count, data.count)
+        XCTAssertEqual(value.data, data)
+        XCTAssertFalse(value.isSVG)
+        XCTAssertFalse(value.firstFrameOnly)
+        let budget = SafetyBudget(maximumEntries: 5_000, maximumDuration: 2, maximumWorkingBytes: Int64(data.count + 47))
+        XCTAssertThrowsError(try ImagePreviewLoader.load(data: data, isSVG: false, budget: budget)) { error in
+            guard case ImagePreviewError.memoryBudget = error else { return XCTFail("Image memory limits must remain enforced") }
+        }
     }
 
-    func testPlistExpansionAndCSVCellBudgetAreBounded() throws {
+    func testPlistExpansionIsBounded() throws {
         let data = try PropertyListSerialization.data(fromPropertyList: Array(repeating: "xxxxxxxxxx", count: 1_000), format: .binary, options: 0)
         XCTAssertThrowsError(try StructuredPreview.propertyList(data, maximumBytes: 4_096))
-        let budget = SafetyBudget(maximumEntries: 4, maximumDuration: 2, maximumWorkingBytes: 1_048_576)
-        let table = try DelimitedTextParser.parse("a,b\nc,d\ne,f", separator: ",", budget: budget)
-        XCTAssertEqual(table.rows, [["a", "b"], ["c", "d"]])
-        XCTAssertTrue(table.isTruncated)
-    }
-
-    func testOverBudgetCSVDoesNotOfferAnUnusablePrefixAction() throws {
-        try withFile(Data("a,b\nc,d".utf8), extension: "csv") { url in
-            let budget = SafetyBudget(maximumEntries: 5_000, maximumDuration: 2, maximumWorkingBytes: 16)
-            guard case .message(let result) = PreviewLoader.load(url, limits: .defaults, budget: budget) else { return XCTFail("Expected refusal") }
-            XCTAssertEqual(result.kind, .refused)
-            XCTAssertFalse(result.canPreviewPrefix)
-        }
     }
 
     private func listingFixture() -> [ContainerEntry] {

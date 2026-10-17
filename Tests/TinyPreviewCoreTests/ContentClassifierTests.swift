@@ -1,7 +1,6 @@
 import AppKit
 import Foundation
 import XCTest
-@testable import TinyPreviewCore
 
 final class ContentClassifierTests: XCTestCase {
     func testUnicodeTextDecoderAcceptsExtensionlessUTF8() {
