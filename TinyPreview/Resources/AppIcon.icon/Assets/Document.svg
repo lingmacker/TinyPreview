@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <defs>
+    <linearGradient id="paper" x1="0" y1="0" x2=".8" y2="1">
+      <stop stop-color="#F8F7F3"/>
+      <stop offset="1" stop-color="#D7DCE2"/>
+    </linearGradient>
+  </defs>
+  <g transform="scale(10.24)">
+    <g transform="translate(22 16) scale(0.9 0.9107142857142857)">
+      <path d="M6 0 H27 L40 13 V50 Q40 56 34 56 H6 Q0 56 0 50 V6 Q0 0 6 0Z" fill="url(#paper)"/>
+      <path d="M27 0 V8 Q27 13 32 13 H40Z" fill="#BDC5CE"/>
+      <path d="M9 24 H29 M9 32 H29 M9 40 H23" fill="none" stroke="#A9AFB7" stroke-width="2.5" stroke-linecap="round"/>
+    </g>
+  </g>
+</svg>

@@ -1,18 +1,36 @@
 {
   "fill": {
-    "solid": "srgb:0.20392,0.20392,0.20392,1.00000"
+    "automatic-gradient": "extended-srgb:0.15686,0.16078,0.17255,1.00000"
   },
   "groups": [
     {
       "layers": [
         {
-          "image-name": "Matrix.svg",
-          "name": "Matrix"
+          "image-name": "Preview.svg",
+          "name": "Preview"
         }
       ],
       "shadow": {
         "kind": "neutral",
-        "opacity": 0
+        "opacity": 0.3
+      },
+      "specular": false,
+      "translucency": {
+        "enabled": false,
+        "value": 0
+      },
+      "blur-material": 0
+    },
+    {
+      "layers": [
+        {
+          "image-name": "Document.svg",
+          "name": "Document"
+        }
+      ],
+      "shadow": {
+        "kind": "neutral",
+        "opacity": 0.2
       },
       "specular": false,
       "translucency": {
