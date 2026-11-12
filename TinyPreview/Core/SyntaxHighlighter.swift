@@ -14,14 +14,10 @@ extension NSColor {
 
 public enum DraculaTheme {
     public static let background = color(0x28, 0x2A, 0x36)
-    public static let rulerBackground = color(0x21, 0x22, 0x2C)
     public static let foreground = color(0xF8, 0xF8, 0xF2)
     public static let comment = color(0x62, 0x72, 0xA4)
-    public static let cyan = color(0x8B, 0xE9, 0xFD)
     public static let green = color(0x50, 0xFA, 0x7B)
     public static let orange = color(0xFF, 0xB8, 0x6C)
-    public static let pink = color(0xFF, 0x79, 0xC6)
-    public static let purple = color(0xBD, 0x93, 0xF9)
     public static let red = color(0xFF, 0x55, 0x55)
     public static let yellow = color(0xF1, 0xFA, 0x8C)
 
@@ -41,6 +37,16 @@ public enum SyntaxHighlighter {
         language: SourceLanguage,
         darkMode: Bool
     ) -> NSAttributedString {
+        highlight(text, language: language, darkMode: darkMode, deadline: .distantFuture)!
+    }
+
+    /// Returns nil once `deadline` passes so oversized input stops consuming CPU.
+    public static func highlight(
+        _ text: String,
+        language: SourceLanguage,
+        darkMode: Bool,
+        deadline: Date
+    ) -> NSAttributedString? {
         let theme = Theme(darkMode: darkMode)
         let paragraph = codeParagraphStyle()
         let result = NSMutableAttributedString(
@@ -54,25 +60,41 @@ public enum SyntaxHighlighter {
         let fullRange = NSRange(text.startIndex..., in: text)
         var protected = IndexSet()
 
-        apply(pattern: commentPattern(for: language), color: theme.comment, to: result, in: fullRange, protected: &protected, protectsRange: true)
-        apply(pattern: stringPattern(for: language), color: theme.string, to: result, in: fullRange, protected: &protected, protectsRange: true)
-        apply(pattern: numberPattern, color: theme.number, to: result, in: fullRange, protected: &protected, protectsRange: false)
-
+        var passes: [(pattern: String, color: NSColor, protects: Bool)] = [
+            (commentPattern(for: language), theme.comment, true),
+            (stringPattern(for: language), theme.string, true),
+            (numberPattern, theme.number, false)
+        ]
         let keywords = keywordList(for: language)
         if !keywords.isEmpty {
             let escaped = keywords.map(NSRegularExpression.escapedPattern(for:)).joined(separator: "|")
-            apply(pattern: "\\b(?:\(escaped))\\b", color: theme.keyword, to: result, in: fullRange, protected: &protected, protectsRange: false)
+            passes.append(("\\b(?:\(escaped))\\b", theme.keyword, false))
         }
         let types = typeList(for: language)
         if !types.isEmpty {
             let escaped = types.map(NSRegularExpression.escapedPattern(for:)).joined(separator: "|")
-            apply(pattern: "\\b(?:\(escaped))\\b", color: theme.type, to: result, in: fullRange, protected: &protected, protectsRange: false)
+            passes.append(("\\b(?:\(escaped))\\b", theme.type, false))
         }
-        if language == .html || language == .xml {
-            apply(pattern: #"(?<=</?)[A-Za-z_][A-Za-z0-9_.:-]*"#, color: theme.keyword, to: result, in: fullRange, protected: &protected, protectsRange: false)
+        switch language {
+        case .html, .xml:
+            passes.append((#"(?<=</?)[A-Za-z_][A-Za-z0-9_.:-]*"#, theme.keyword, false))
+        case .markdown:
+            passes.append((#"(?m)^(?:#{1,6}|>|[-*+]\s|\d+\.\s)"#, theme.keyword, false))
+        case .ini:
+            passes.append((#"(?m)^\s*\[[^\]\n]*\]"#, theme.type, false))
+            passes.append((#"(?m)^\s*[^\s=:;#\[][^=:\n]*?(?=\s*[=:])"#, theme.keyword, false))
+        case .makefile:
+            passes.append((#"\$[({][^)}\n]*[)}]"#, theme.type, false))
+            passes.append((#"(?m)^[^\s:#=][^:#=\n]*(?=\s*::?(?!=))"#, theme.keyword, false))
+        case .cmake:
+            passes.append((#"\$\{[^}\n]*\}"#, theme.type, false))
+        default:
+            break
         }
-        if language == .markdown {
-            apply(pattern: #"(?m)^(?:#{1,6}|>|[-*+]\s|\d+\.\s)"#, color: theme.keyword, to: result, in: fullRange, protected: &protected, protectsRange: false)
+
+        for pass in passes {
+            guard apply(pattern: pass.pattern, color: pass.color, to: result, in: fullRange,
+                        protected: &protected, protectsRange: pass.protects, deadline: deadline) else { return nil }
         }
         return result
     }
@@ -112,20 +134,50 @@ public enum SyntaxHighlighter {
     }
 
 
+    private static let regexCache = RegexCache()
+
+    /// Returns false when the deadline passes before every match is processed.
     private static func apply(
         pattern: String,
         color: NSColor,
         to result: NSMutableAttributedString,
         in fullRange: NSRange,
         protected: inout IndexSet,
-        protectsRange: Bool
-    ) {
-        guard let regex = try? NSRegularExpression(pattern: pattern) else { return }
-        for match in regex.matches(in: result.string, range: fullRange) where match.range.length > 0 {
-            let indexes = IndexSet(integersIn: match.range.location ..< match.range.location + match.range.length)
-            guard protected.intersection(indexes).isEmpty else { continue }
-            result.addAttribute(.foregroundColor, value: color, range: match.range)
-            if protectsRange { protected.formUnion(indexes) }
+        protectsRange: Bool,
+        deadline: Date
+    ) -> Bool {
+        guard let regex = regexCache.regex(for: pattern) else { return true }
+        var finished = true
+        var processed = 0
+        var collected = protected
+        regex.enumerateMatches(in: result.string, range: fullRange) { match, _, stop in
+            processed += 1
+            if processed % 512 == 0, Date() > deadline {
+                finished = false
+                stop.pointee = true
+                return
+            }
+            guard let range = match?.range, range.length > 0 else { return }
+            let indexes = range.location ..< range.location + range.length
+            guard !collected.intersects(integersIn: indexes) else { return }
+            result.addAttribute(.foregroundColor, value: color, range: range)
+            if protectsRange { collected.insert(integersIn: indexes) }
+        }
+        protected = collected
+        return finished && Date() <= deadline
+    }
+
+    private final class RegexCache: @unchecked Sendable {
+        private let lock = NSLock()
+        private var storage: [String: NSRegularExpression] = [:]
+
+        func regex(for pattern: String) -> NSRegularExpression? {
+            lock.lock()
+            defer { lock.unlock() }
+            if let cached = storage[pattern] { return cached }
+            guard let compiled = try? NSRegularExpression(pattern: pattern) else { return nil }
+            storage[pattern] = compiled
+            return compiled
         }
     }
 
@@ -133,8 +185,14 @@ public enum SyntaxHighlighter {
 
     private static func commentPattern(for language: SourceLanguage) -> String {
         switch language {
-        case .python, .ruby, .shell, .yaml, .toml:
+        case .python, .ruby, .shell, .yaml, .toml, .graphql, .dockerfile, .makefile, .cmake:
             #"(?m)#.*$"#
+        case .ini:
+            #"(?m)^\s*[;#].*$"#
+        case .lua:
+            #"(?m)--\[\[[\s\S]*?\]\]|--.*$"#
+        case .php:
+            #"(?m)//.*$|#(?!\[).*$|/\*[\s\S]*?\*/"#
         case .html, .xml, .markdown:
             #"<!--[\s\S]*?-->"#
         case .sql:
@@ -150,8 +208,10 @@ public enum SyntaxHighlighter {
         switch language {
         case .html, .xml:
             #"\"[^\"]*\"|'[^']*'"#
-        case .shell:
+        case .shell, .dockerfile, .makefile, .cmake:
             #"\"(?:\\.|[^\"\\])*\"|'[^']*'"#
+        case .ini:
+            #"\"(?:\\.|[^\"\\\n])*\"|'[^'\n]*'"#
         default:
             #"\"(?:\\.|[^\"\\])*\"|'(?:\\.|[^'\\])*'|`(?:\\.|[^`\\])*`"#
         }
@@ -187,6 +247,28 @@ public enum SyntaxHighlighter {
             ["false", "true"]
         case .sql:
             ["ALTER", "AND", "AS", "ASC", "BEGIN", "BETWEEN", "BY", "CASE", "CREATE", "DELETE", "DESC", "DISTINCT", "DROP", "ELSE", "END", "EXISTS", "FROM", "GROUP", "HAVING", "IN", "INDEX", "INSERT", "INTO", "IS", "JOIN", "LIKE", "LIMIT", "NOT", "NULL", "ON", "OR", "ORDER", "OUTER", "PRIMARY", "REFERENCES", "SELECT", "SET", "TABLE", "THEN", "UNION", "UNIQUE", "UPDATE", "VALUES", "VIEW", "WHEN", "WHERE", "WITH"]
+        case .lua:
+            ["and", "break", "do", "else", "elseif", "end", "false", "for", "function", "goto", "if", "in", "local", "nil", "not", "or", "repeat", "return", "then", "true", "until", "while"]
+        case .php:
+            ["abstract", "and", "array", "as", "break", "callable", "case", "catch", "class", "clone", "const", "continue", "declare", "default", "do", "echo", "else", "elseif", "empty", "enum", "extends", "false", "final", "finally", "fn", "for", "foreach", "function", "global", "goto", "if", "implements", "include", "include_once", "instanceof", "insteadof", "interface", "isset", "list", "match", "namespace", "new", "null", "or", "print", "private", "protected", "public", "readonly", "require", "require_once", "return", "static", "switch", "throw", "trait", "true", "try", "unset", "use", "var", "while", "xor", "yield"]
+        case .dart:
+            ["abstract", "as", "assert", "async", "await", "break", "case", "catch", "class", "const", "continue", "covariant", "default", "deferred", "do", "dynamic", "else", "enum", "export", "extends", "extension", "external", "factory", "false", "final", "finally", "for", "get", "if", "implements", "import", "in", "is", "late", "library", "mixin", "new", "null", "on", "operator", "part", "required", "rethrow", "return", "sealed", "set", "static", "super", "switch", "sync", "this", "throw", "true", "try", "typedef", "var", "void", "when", "while", "with", "yield"]
+        case .scala:
+            ["abstract", "case", "catch", "class", "def", "do", "else", "enum", "export", "extends", "false", "final", "finally", "for", "given", "if", "implicit", "import", "lazy", "match", "new", "null", "object", "override", "package", "private", "protected", "return", "sealed", "super", "then", "this", "throw", "trait", "true", "try", "type", "using", "val", "var", "while", "with", "yield"]
+        case .zig:
+            ["align", "allowzero", "and", "anyframe", "anytype", "asm", "break", "callconv", "catch", "comptime", "const", "continue", "defer", "else", "enum", "errdefer", "error", "export", "extern", "false", "fn", "for", "if", "inline", "linksection", "noalias", "noinline", "nosuspend", "null", "opaque", "or", "orelse", "packed", "pub", "resume", "return", "struct", "suspend", "switch", "test", "threadlocal", "true", "try", "undefined", "union", "unreachable", "usingnamespace", "var", "volatile", "while"]
+        case .protobuf:
+            ["enum", "extend", "extensions", "false", "import", "map", "max", "message", "oneof", "option", "optional", "package", "public", "repeated", "required", "reserved", "returns", "rpc", "service", "stream", "syntax", "to", "true", "weak"]
+        case .graphql:
+            ["directive", "enum", "extend", "false", "fragment", "implements", "input", "interface", "mutation", "null", "on", "query", "scalar", "schema", "subscription", "true", "type", "union"]
+        case .ini:
+            ["false", "no", "off", "on", "true", "yes"]
+        case .dockerfile:
+            ["ADD", "ARG", "AS", "CMD", "COPY", "ENTRYPOINT", "ENV", "EXPOSE", "FROM", "HEALTHCHECK", "LABEL", "MAINTAINER", "ONBUILD", "RUN", "SHELL", "STOPSIGNAL", "USER", "VOLUME", "WORKDIR"]
+        case .makefile:
+            ["define", "else", "endef", "endif", "export", "ifdef", "ifeq", "ifndef", "ifneq", "include", "override", "unexport", "vpath"]
+        case .cmake:
+            ["add_custom_command", "add_custom_target", "add_executable", "add_library", "add_subdirectory", "cmake_minimum_required", "else", "elseif", "endforeach", "endfunction", "endif", "endmacro", "endwhile", "find_package", "foreach", "function", "if", "include", "install", "macro", "message", "option", "project", "return", "set", "target_compile_definitions", "target_compile_options", "target_include_directories", "target_link_libraries", "unset", "while"]
         case .html, .xml, .markdown:
             []
         }
@@ -202,6 +284,16 @@ public enum SyntaxHighlighter {
             ["bool", "byte", "complex64", "complex128", "error", "float32", "float64", "int", "int8", "int16", "int32", "int64", "rune", "string", "uint", "uint8", "uint16", "uint32", "uint64", "uintptr"]
         case .typescript:
             ["any", "bigint", "boolean", "never", "number", "object", "string", "symbol", "unknown", "void"]
+        case .dart:
+            ["bool", "double", "dynamic", "Future", "int", "List", "Map", "num", "Object", "Set", "Stream", "String"]
+        case .scala:
+            ["Any", "Boolean", "Double", "Float", "Int", "List", "Long", "Map", "Nothing", "Option", "Seq", "String", "Unit"]
+        case .zig:
+            ["anyerror", "bool", "f16", "f32", "f64", "i8", "i16", "i32", "i64", "i128", "isize", "type", "u8", "u16", "u32", "u64", "u128", "usize", "void"]
+        case .protobuf:
+            ["bool", "bytes", "double", "fixed32", "fixed64", "float", "int32", "int64", "sfixed32", "sfixed64", "sint32", "sint64", "string", "uint32", "uint64"]
+        case .graphql:
+            ["Boolean", "Float", "ID", "Int", "String"]
         default:
             []
         }
@@ -329,7 +421,8 @@ public enum MarkdownRenderer {
                 guard case .codeBlock(let hint) = component.kind, let hint else { return nil }
                 let name = hint.lowercased().trimmingCharacters(in: .whitespaces)
                 let aliases: [String: SourceLanguage] = ["bash": .shell, "sh": .shell, "zsh": .shell, "js": .javascript,
-                    "ts": .typescript, "py": .python, "c++": .cpp, "objective-c": .objectiveC]
+                    "ts": .typescript, "py": .python, "c++": .cpp, "objective-c": .objectiveC,
+                    "make": .makefile, "docker": .dockerfile, "proto": .protobuf, "gql": .graphql]
                 return aliases[name] ?? SourceLanguage(rawValue: name) ??
                     SourceLanguageDetector.detect(url: URL(fileURLWithPath: "code.\(name)"), prefix: Data())
             }.first

@@ -6,6 +6,7 @@ final class SettingsModel: ObservableObject {
     @Published private(set) var saveFailed = false
 
     init() {
+        SharedSettings.migrateLegacyGlobalValues()
         limits = SharedSettings.load()
     }
 

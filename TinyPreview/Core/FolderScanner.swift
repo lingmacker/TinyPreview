@@ -8,7 +8,6 @@ public enum FolderScanner {
     ) -> ContainerPreview {
         let started = Date()
         var entries: [ContainerEntry] = []
-        var knownBytes: Int64 = 0
         var stopReason: String?
         let keys: Set<URLResourceKey> = [
             .isDirectoryKey,
@@ -106,7 +105,6 @@ public enum FolderScanner {
                 }
 
                 let size = isDirectory ? nil : values.fileSize.map(Int64.init)
-                if let size { knownBytes += size }
                 entries.append(ContainerEntry(
                     id: entries.count,
                     depth: depth,
@@ -128,7 +126,6 @@ public enum FolderScanner {
         return ContainerPreview(
             title: root.lastPathComponent,
             entries: entries,
-            knownBytes: knownBytes,
             isComplete: stopReason == nil,
             incompleteReason: stopReason
         )

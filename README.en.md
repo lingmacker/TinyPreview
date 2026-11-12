@@ -8,118 +8,137 @@
   <a href="README.md">简体中文</a> · <strong>English</strong>
 </p>
 
-TinyPreview is a macOS Quick Look enhancement for Finder. Select a file or folder and press Space to view its contents in the system Quick Look window.
+TinyPreview is a macOS Quick Look preview extension for Finder. Select a file or folder and press Space to see folder listings, archive contents, highlighted source code, formatted JSON/plist, and rendered Markdown in the system Quick Look window.
+
+All previews are read-only: TinyPreview never extracts or edits files and never loads remote content.
 
 ## Features
 
-- **Folder previews**: Display a read-only hierarchical list directly, with per-directory expand/collapse arrows and name/relative-path copying. No summary or toolbar is added above the list. Hidden directories and packages are not recursively scanned.
-- **Archive previews**: List the contents of ZIP, TAR, GZIP, BZIP2, XZ, 7Z, and RAR archives without extracting them.
-- **Plain text previews**: Identify UTF-8 and BOM-marked UTF-16/UTF-32 text by content rather than file extension. Supports common dotfiles such as `.gitignore`, `.gitattributes`, `.gitmodules`, `.env`, `.editorconfig`, `.npmrc`, `.bashrc`, and `.zshrc`.
-- **Syntax highlighting**: Recognize common programming languages using standard extensions, well-known filenames, or shebangs.
-- **JSON / plist**: JSON is formatted automatically while preserving numeric tokens. XML and binary plists are displayed as read-only XML. Parsing failures fall back to decodable raw text or show an explicit error.
-- **Large-text excerpts**: When text or source code exceeds a size/read limit, explicitly choose “仅预览开头” (Preview beginning) to read an excerpt of at most 1 MB with a clear truncation notice. Limits are never raised automatically.
-- **Markdown rendering**: Automatically render headings, emphasis, inline code, lists, blockquotes, links, and tables as selectable rich text, with syntax highlighting for recognized fenced-code languages.
-- **Image previews**: The custom interface applies only when macOS actually invokes the TinyPreview extension. Support image formats that Image I/O can decode, as well as SVG files that pass safety checks. Includes zooming, panning, and a default checkerboard for transparent areas, with no image metadata overlay, top information bar, or background controls. A warning remains when safety limits restrict an animation to its first frame.
-- **Per-category size limits**: Configure separate preview size limits for text, source code, images, and archives.
-- **Safety budgets**: Limit scanned entries, processing time, and memory usage to prevent oversized files or malformed archives from blocking Quick Look.
+### Folders and Archives
 
-## Requirements
+- **Folders**: Show a hierarchical listing directly. Each directory can be expanded or collapsed on its own, and the context menu copies names or relative paths. Hidden directories and package contents are not scanned recursively.
+- **Archives**: List the contents of ZIP, TAR, GZIP, BZIP2, XZ, 7Z, and RAR archives without extracting them.
 
-- macOS 26 or later
-- Apple Silicon Mac
-- Xcode and Command Line Tools with macOS 26 SDK support to build the app
+### Text and Source Code
 
-TinyPreview uses only the modern Quick Look Preview Extension and does not include a legacy `qlgenerator` fallback.
+- **Content-based text detection**: UTF-8 and BOM-marked UTF-16/UTF-32 text is previewed regardless of extension, including files without an extension and dotfiles such as `.gitignore` and `.gitattributes`.
+- **Syntax highlighting**: Languages are recognized from the extension, well-known filenames, or the shebang:
+  - Swift, Objective-C, C/C++, Rust, Go, Python, Ruby, Java, Kotlin, JavaScript, TypeScript, Lua, PHP, Dart, Scala, Zig
+  - HTML, CSS, XML, SQL, Shell, JSON, YAML, TOML, INI/config files, Protobuf, GraphQL
+  - `Dockerfile`, `Makefile`, `CMakeLists.txt`, shell configuration such as `.bashrc`/`.zshrc`, and `.env`/`.editorconfig`/`.npmrc`/`.gitconfig`
+  - Text whose language cannot be identified reliably is shown as plain text, without guessed highlighting.
+- **JSON / plist**: JSON is formatted automatically while keeping numbers exactly as written. XML and binary plists are shown as read-only XML. When parsing fails, the original text or a clear error is shown.
+- **Markdown**: Headings, emphasis, inline code, lists, blockquotes, links, and tables are rendered as selectable rich text, with highlighting for code blocks in recognized languages.
+- **Large-text excerpts**: When a file exceeds its size limit, choose “仅预览开头” (Preview beginning) to read at most 1 MB with a clear truncation notice. Limits are never raised automatically.
+
+### Images
+
+- Supports formats Image I/O can decode, plus SVG files that pass safety checks.
+- The canvas supports pinch-to-zoom and panning. Double-click switches between fit-to-window and actual pixels, and small images are never enlarged. Transparent areas show a checkerboard.
+- Large images whose decoded bitmap would exceed the memory budget are downsampled with a “已缩小显示” (Downsampled) notice; 100% zoom still corresponds to the original size.
+- If all frames of an animation exceed the budget, only the first frame is shown, with a notice.
+
+> Common image formats (PNG, JPEG, GIF, HEIC, and others) are usually handled by the built-in macOS preview. See “Which Files TinyPreview Previews” below.
+
+### Unsupported Content
+
+Unrecognized binaries and other unsupported content are handed back to macOS, which shows its default file information preview instead of a TinyPreview “unsupported” page.
+
+## Which Files TinyPreview Previews
+
+macOS displays some common types with Quick Look's built-in viewers and does not invoke any preview extension for them, even when TinyPreview declares the type. Tested through Finder on macOS 27.0.1:
+
+| Previewed by TinyPreview | Handled by the built-in preview |
+| --- | --- |
+| Folders and archives such as ZIP and TAR.GZ | `.txt`, CSV, RTF, HTML |
+| Source code (including Lua, PHP, Dart, Scala, Zig, Protobuf, GraphQL, CMake) | PNG, JPEG, GIF, HEIC, TIFF, SVG |
+| `Dockerfile`, `Makefile`, INI, `.properties` | PDF, audio |
+| JSON, plist, XML, YAML, Markdown | Files ending in `.txt` such as `CMakeLists.txt`, `.conf` |
+| BMP, text and images without an extension | Extensions the system does not recognize (such as `.dat`) |
+
+To check whether a preview comes from TinyPreview, keep the preview window open and run `pgrep -fl TinyPreviewQuickLook`; any output means TinyPreview is in use. The first preview of a newly created file, or right after the preview service restarts, is occasionally handled by the system; pressing Space again fixes it.
+
+## Install and Use
+
+1. Download the DMG from [GitHub Releases](https://github.com/lingmacker/TinyPreview/releases/latest) and drag TinyPreview into Applications, or run `make install` from source.
+2. Launch TinyPreview once so macOS registers the preview extension, and adjust preview size limits if needed.
+3. Select a file or folder in Finder and press Space.
+
+Release builds are ad hoc signed and are not Developer ID signed or notarized, so macOS may ask you to confirm the first launch in System Settings → Privacy & Security.
+
+If previews do not appear, make sure TinyPreview is enabled in System Settings → General → Login Items & Extensions → Quick Look.
+
+## Settings and Safety Budgets
+
+**Preview size limits**: The TinyPreview app sets separate limits for text, source code, images, and archives. Files over their limit are not read, and the reason is shown. JSON and plist use the source code limit; folders are not size-limited. New settings take effect from the next preview.
+
+| Category | Default | Range |
+| --- | --- | --- |
+| Plain text | 5 MB | 1–50 MB |
+| Source code | 2 MB | 1–20 MB |
+| Images | 100 MB | 1–500 MB |
+| Archives | 200 MB | 1–2048 MB |
+
+Settings are stored in the app's own preferences domain, `com.lingmacker.TinyPreview`, which the extension reads read-only. Settings that earlier versions wrote to the global domain are migrated and removed the first time the new app launches.
+
+**Safety budgets** cannot be turned off and keep oversized or malformed files from blocking Quick Look:
+
+- Folder and archive listings stop at 5,000 entries.
+- Each preview gets at most 2 seconds; scanning, formatting, and syntax highlighting stop early when time runs out.
+- Decoding uses at most 256 MB of memory.
+
+## Known Limitations
+
+- Types handled by the built-in preview (see the table above) cannot be routed to TinyPreview.
+- Archives and folders show listings only; items inside them cannot be opened from the preview. Encrypted and multi-volume archives are not supported.
+- The extension is sandboxed and can read only the previewed file, so Markdown images referenced by relative paths are not shown.
+- “Preview beginning” applies only to text and source code, not to archives, images, or plists.
+- macOS uses `.ts` for both TypeScript and MPEG-2 Transport Stream. TinyPreview declares that type to support TypeScript; actual TS video is classified as unsupported and handed back to the system preview.
+- iCloud files that have not been downloaded are not downloaded automatically; a notice is shown instead.
 
 ## Build
 
-Build an ad hoc-signed Debug app by default:
+Requires macOS 26 or later, an Apple Silicon Mac, and Xcode with the macOS 26 SDK. TinyPreview uses only the modern Quick Look Preview Extension and has no legacy `qlgenerator`.
 
 ```sh
-make
-```
-
-The built app is located at:
-
-```text
-.build/xcode/Build/Products/Debug/TinyPreview.app
-```
-
-Other useful commands:
-
-```sh
-make run      # Build and launch TinyPreview
+make          # Build an ad hoc-signed Debug app
+make run      # Build and launch
 make install  # Build and install to /Applications/TinyPreview.app, replacing the old version
 make clean    # Remove the .build directory
 ```
 
-Build a specific version:
-
-```sh
-make build MARKETING_VERSION=1.2.3 CURRENT_PROJECT_VERSION=42
-```
-
-Build an ad hoc-signed Release app:
+The built app is at `.build/xcode/Build/Products/Debug/TinyPreview.app`. To build Release or a specific version:
 
 ```sh
 make build CONFIGURATION=Release
+make build MARKETING_VERSION=1.2.3 CURRENT_PROJECT_VERSION=42
 ```
 
 ## Tests
 
 ```sh
 make test     # Run core parser and loader regression tests through Xcode
-make test-ui  # Local AppKit/SwiftUI interaction checks; requires a macOS graphical session
+make test-ui  # Local AppKit/SwiftUI interaction checks; requires a graphical session
 ```
 
-Interaction checks cover toolbar-free text content, automatic Markdown/JSON processing, image canvases without metadata overlays, zooming, and the default checkerboard transparency background. Regular, compact, and dark preview captures are saved to `.build/preview-checks/`. These checks do not replace Finder extension-routing tests. The legacy test that writes global user preferences is skipped by default to avoid changing actual settings.
+The interaction checks cover text display, automatic Markdown/JSON handling, the image canvas, zooming, and the checkerboard background, and save regular, compact, and dark-mode captures to `.build/preview-checks/`. They do not replace checking in Finder that the extension is actually invoked. The test that reads and writes real user settings is skipped unless `TINYPREVIEW_TEST_GLOBAL_SETTINGS=1` is set.
 
 ## Releases
 
-Pushing a `v<major>.<minor>.<patch>` tag triggers `.github/workflows/release.yml`. The workflow uses Xcode 27 to build an Apple Silicon Release app and uploads a DMG and SHA-256 checksum file to the corresponding GitHub Release.
+Pushing a `v<major>.<minor>.<patch>` tag triggers `.github/workflows/release.yml`, which builds an Apple Silicon Release app with Xcode 27 and uploads a DMG and SHA-256 checksum file to the corresponding GitHub Release.
 
 ```sh
 git tag v1.0.0
 git push origin v1.0.0
 ```
 
-Automatically published apps are ad hoc-signed, not Developer ID-signed or notarized. On first launch, macOS may require confirmation in the system security settings.
-
-Download the latest DMG from [GitHub Releases](https://github.com/lingmacker/TinyPreview/releases/latest). Open the DMG and drag TinyPreview into the Applications folder.
-
-## Usage
-
-1. Install TinyPreview from the DMG, or run `make run` to launch the built app directly.
-2. Launch TinyPreview and configure preview size limits for each file category.
-3. Select a supported item in Finder and press Space.
-
-Common actions in the preview window:
-
-Text previews show content directly, without a duplicate filename heading or text toolbar. The system Quick Look title bar is unchanged.
-
-- Use each directory's arrow to expand/collapse its entries. Right-click to copy names or relative paths.
-- Image previews show only the canvas. Double-click an image to switch between fit-to-window and original size.
-
-TinyPreview no longer provides CSV/TSV previews. JSON/plist use the source-code size limit. All actions are read-only: files are not extracted or edited, and remote content is not loaded automatically.
-
-Quick Look first selects an extension based on the content type identified by the system. TinyPreview declares the generic `public.data` type to receive extensionless dotfiles that the system identifies as generic data. This may also cause it to handle previews for other generic data files; unsupported non-text content displays an “Unsupported” message. Dynamic UTIs generated for unknown extensions, such as `.env.local`, are still not guaranteed to be routed to TinyPreview. TinyPreview does not change file types or intercept Finder keyboard events.
-
 ## Project Structure
 
 ```text
 TinyPreview/
-├── App/        # Settings host app
-├── Core/       # Content classification, loading, and safety budgets
-├── QuickLook/  # Quick Look Preview Extension UI
+├── App/        # Settings app
+├── Core/       # Content classification, loading, syntax highlighting, and safety budgets
+├── QuickLook/  # Quick Look preview extension UI
 └── Support/    # Extension Info.plist and entitlements
-Tests/          # Core regression tests and local preview interaction checks
+Tests/          # Core regression tests and local interaction checks
 ```
-
-## Known Limitations
-
-- macOS may route PNG/JPEG files to its built-in image preview. Custom zooming, panning, and the default checkerboard apply only when the TinyPreview extension is actually invoked.
-- Archive and folder previews only display lists; child items cannot be opened within the preview window.
-- Password input, encrypted archives, and split archives are not supported.
-- Text whose language cannot be reliably identified is displayed as plain text, without speculative syntax highlighting.
-- macOS also uses `.ts` for MPEG-2 Transport Stream files. TinyPreview declares that system type to support TypeScript, so actual MPEG-2 TS videos may be classified as non-text content by TinyPreview.
-- Items exceeding configured size limits or internal safety budgets display an explicit reason for rejection. Preview-beginning excerpts apply only to text/source code, not archives, images, or plists.

@@ -1,3 +1,4 @@
+import CoreGraphics
 import Foundation
 
 public enum PreviewCategory: String, CaseIterable, Sendable {
@@ -72,6 +73,7 @@ public struct SafetyBudget: Equatable, Sendable {
 public enum SourceLanguage: String, CaseIterable, Sendable {
     case swift, objectiveC, c, cpp, rust, go, python, ruby, java, kotlin
     case javascript, typescript, html, css, shell, json, yaml, toml, xml, sql, markdown
+    case lua, php, dart, scala, zig, protobuf, graphql, ini, dockerfile, makefile, cmake
 
     public var displayName: String {
         switch self {
@@ -96,31 +98,32 @@ public enum SourceLanguage: String, CaseIterable, Sendable {
         case .xml: "XML"
         case .sql: "SQL"
         case .markdown: "Markdown"
+        case .lua: "Lua"
+        case .php: "PHP"
+        case .dart: "Dart"
+        case .scala: "Scala"
+        case .zig: "Zig"
+        case .protobuf: "Protocol Buffers"
+        case .graphql: "GraphQL"
+        case .ini: "INI"
+        case .dockerfile: "Dockerfile"
+        case .makefile: "Makefile"
+        case .cmake: "CMake"
         }
     }
 }
 
-public enum UnicodeTextEncoding: String, Sendable {
-    case utf8 = "UTF-8"
-    case utf16LittleEndian = "UTF-16 LE"
-    case utf16BigEndian = "UTF-16 BE"
-    case utf32LittleEndian = "UTF-32 LE"
-    case utf32BigEndian = "UTF-32 BE"
-}
-
 public struct TextPreview: Sendable {
     public let text: String
-    public let encoding: UnicodeTextEncoding
     public let language: SourceLanguage?
 
     public let formattedText: String?
     public let notice: String?
     public let isTruncated: Bool
 
-    public init(text: String, encoding: UnicodeTextEncoding, language: SourceLanguage?,
+    public init(text: String, language: SourceLanguage?,
                 formattedText: String? = nil, notice: String? = nil, isTruncated: Bool = false) {
         self.text = text
-        self.encoding = encoding
         self.language = language
         self.formattedText = formattedText
         self.notice = notice
@@ -134,6 +137,20 @@ public struct ImagePreview: @unchecked Sendable {
     public let data: Data
     public let isSVG: Bool
     public let firstFrameOnly: Bool
+    /// Decoded bitmap for stills and first-frame-only animations; nil means render `data` directly.
+    public let stillImage: CGImage?
+    public let displaySize: CGSize?
+    public let isDownsampled: Bool
+
+    public init(data: Data, isSVG: Bool, firstFrameOnly: Bool, stillImage: CGImage? = nil,
+                displaySize: CGSize? = nil, isDownsampled: Bool = false) {
+        self.data = data
+        self.isSVG = isSVG
+        self.firstFrameOnly = firstFrameOnly
+        self.stillImage = stillImage
+        self.displaySize = displaySize
+        self.isDownsampled = isDownsampled
+    }
 }
 
 public struct ContainerEntry: Identifiable, Equatable, Sendable {
@@ -170,7 +187,6 @@ public struct ContainerEntry: Identifiable, Equatable, Sendable {
 public struct ContainerPreview: Sendable {
     public let title: String
     public let entries: [ContainerEntry]
-    public let knownBytes: Int64
     public let isComplete: Bool
     public let incompleteReason: String?
 }

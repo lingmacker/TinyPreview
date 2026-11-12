@@ -26,7 +26,15 @@ final class PreviewViewController: NSViewController, QLPreviewingController {
         at url: URL,
         completionHandler handler: @escaping (Error?) -> Void
     ) {
-        model.load(url)
-        handler(nil)
+        model.load(url) { result in
+            // Let Quick Look fall back to its generic preview instead of showing an unsupported page.
+            if case .message(let message) = result, message.kind == .unsupported {
+                handler(UnsupportedContentError())
+            } else {
+                handler(nil)
+            }
+        }
     }
 }
+
+private struct UnsupportedContentError: Error {}

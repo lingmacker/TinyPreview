@@ -60,10 +60,10 @@ final class PreviewEnhancementTests: XCTestCase {
             XCTAssertNotNil(prefix.notice)
         }
         XCTAssertNil(UnicodeTextDecoder.decodePrefix(Data([0x61, 0, 0x62, 0x63, 0x64, 0x65])))
-        XCTAssertEqual(UnicodeTextDecoder.decodePrefix(Data([0x61, 0xE4]))?.0, "a")
+        XCTAssertEqual(UnicodeTextDecoder.decodePrefix(Data([0x61, 0xE4])), "a")
         XCTAssertNil(UnicodeTextDecoder.decodePrefix(Data([0x61, 0])))
         let utf16 = Data([0xFF, 0xFE, 0x61, 0, 0x3D, 0xD8, 0x00])
-        XCTAssertEqual(UnicodeTextDecoder.decodePrefix(utf16)?.0, "a")
+        XCTAssertEqual(UnicodeTextDecoder.decodePrefix(utf16), "a")
     }
 
     func testMarkdownFencedCodeUsesSyntaxColors() throws {
@@ -100,8 +100,18 @@ final class PreviewEnhancementTests: XCTestCase {
         XCTAssertEqual(value.data, data)
         XCTAssertFalse(value.isSVG)
         XCTAssertFalse(value.firstFrameOnly)
-        let budget = SafetyBudget(maximumEntries: 5_000, maximumDuration: 2, maximumWorkingBytes: Int64(data.count + 47))
-        XCTAssertThrowsError(try ImagePreviewLoader.load(data: data, isSVG: false, budget: budget)) { error in
+        XCTAssertFalse(value.isDownsampled)
+        XCTAssertEqual(value.stillImage?.width, 4)
+
+        // A bitmap that would exceed the budget is decoded smaller instead of refused.
+        let tight = SafetyBudget(maximumEntries: 5_000, maximumDuration: 2, maximumWorkingBytes: Int64(data.count + 47))
+        let shrunk = try ImagePreviewLoader.load(data: data, isSVG: false, budget: tight)
+        XCTAssertTrue(shrunk.isDownsampled)
+        XCTAssertLessThanOrEqual(shrunk.stillImage!.width * shrunk.stillImage!.height * 4, 47)
+        XCTAssertEqual(shrunk.displaySize, CGSize(width: 4, height: 3))
+
+        let exhausted = SafetyBudget(maximumEntries: 5_000, maximumDuration: 2, maximumWorkingBytes: Int64(data.count))
+        XCTAssertThrowsError(try ImagePreviewLoader.load(data: data, isSVG: false, budget: exhausted)) { error in
             guard case ImagePreviewError.memoryBudget = error else { return XCTFail("Image memory limits must remain enforced") }
         }
     }

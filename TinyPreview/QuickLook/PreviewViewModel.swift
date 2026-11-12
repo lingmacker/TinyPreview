@@ -13,7 +13,7 @@ final class PreviewViewModel: ObservableObject {
     private var generation = UUID()
     private var renderGeneration = UUID()
 
-    func load(_ url: URL, allowPartialText: Bool = false) {
+    func load(_ url: URL, allowPartialText: Bool = false, completion: ((PreviewResult) -> Void)? = nil) {
         self.url = url
         result = nil
         attributedText = nil
@@ -25,6 +25,7 @@ final class PreviewViewModel: ObservableObject {
             let loaded = PreviewLoader.load(url, limits: limits, allowPartialText: allowPartialText)
             DispatchQueue.main.async {
                 guard let self, self.generation == token else { return }
+                completion?(loaded)
                 self.result = loaded
                 if case .text(let preview) = loaded {
                     self.render(preview)
@@ -50,13 +51,14 @@ final class PreviewViewModel: ObservableObject {
         renderGeneration = token
         DispatchQueue.global(qos: .userInitiated).async { [weak self] in
             let started = Date()
+            let deadline = started.addingTimeInterval(SafetyBudget.standard.maximumDuration)
             let rendered: NSAttributedString?
             if text.utf8.count > Int(SafetyBudget.standard.maximumWorkingBytes / 32) {
                 rendered = nil
             } else if rendersMarkdown {
                 rendered = try? MarkdownRenderer.render(text, darkMode: darkMode)
             } else if let language = preview.language {
-                rendered = SyntaxHighlighter.highlight(text, language: language, darkMode: darkMode)
+                rendered = SyntaxHighlighter.highlight(text, language: language, darkMode: darkMode, deadline: deadline)
             } else {
                 rendered = SyntaxHighlighter.plainText(text, darkMode: darkMode)
             }

@@ -1,7 +1,7 @@
 import Foundation
 
 public enum StructuredPreview {
-    public static func json(_ text: String, maximumBytes: Int = 16 * 1_048_576) throws -> String {
+    public static func json(_ text: String, maximumBytes: Int = 16 * 1_048_576, deadline: Date = .distantFuture) throws -> String {
         _ = try JSONSerialization.jsonObject(with: Data(text.utf8), options: [.fragmentsAllowed])
         // Reflow validated tokens instead of reserializing NSNumber and changing numeric precision.
         let bytes = Array(text.utf8)
@@ -14,7 +14,8 @@ public enum StructuredPreview {
             output.append(10)
             output.append(contentsOf: repeatElement(32, count: depth * 2))
         }
-        for byte in bytes {
+        for (index, byte) in bytes.enumerated() {
+            if index % 65_536 == 0, Date() > deadline { throw CocoaError(.userCancelled) }
             if inString {
                 output.append(byte)
                 if escaped { escaped = false }
@@ -51,7 +52,7 @@ public enum StructuredPreview {
         return String(decoding: output, as: UTF8.self)
     }
 
-    public static func propertyList(_ data: Data, maximumBytes: Int = 16 * 1_048_576) throws -> String {
+    public static func propertyList(_ data: Data, maximumBytes: Int = 16 * 1_048_576, deadline: Date = .distantFuture) throws -> String {
         let value = try PropertyListSerialization.propertyList(from: data, options: [], format: nil)
         // Bound XML expansion too: binary plists can reference the same large value many times.
         var pending: [Any] = [value]
@@ -60,6 +61,7 @@ public enum StructuredPreview {
         while let item = pending.popLast() {
             visited += 1
             guard visited <= 20_000 else { throw CocoaError(.fileReadTooLarge) }
+            if visited % 1_024 == 0, Date() > deadline { throw CocoaError(.userCancelled) }
             if let string = item as? String { estimatedBytes += string.utf8.count * 6 + 32 }
             else if let bytes = item as? Data { estimatedBytes += bytes.count * 2 + 32 }
             else if let dictionary = item as? [String: Any] {

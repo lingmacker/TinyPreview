@@ -51,6 +51,14 @@
                     <string>fish</string>
                     <string>jsonc</string>
                     <string>mdown</string>
+                    <string>dart</string>
+                    <string>scala</string>
+                    <string>sc</string>
+                    <string>zig</string>
+                    <string>graphql</string>
+                    <string>gql</string>
+                    <string>cmake</string>
+                    <string>dockerfile</string>
                 </array>
             </dict>
         </dict>
@@ -89,6 +97,12 @@
                 <string>net.daringfireball.markdown</string>
                 <string>public.mpeg-2-transport-stream</string>
                 <string>public.script</string>
+                <string>public.php-script</string>
+                <string>public.protobuf-source</string>
+                <string>public.make-source</string>
+                <string>org.lua.lua-source</string>
+                <string>com.microsoft.ini</string>
+                <string>org.vim.properties-file</string>
                 <string>com.apple.property-list</string>
                 <string>com.apple.binary-property-list</string>
                 <string>public.json</string>

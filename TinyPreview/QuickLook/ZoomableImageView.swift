@@ -1,5 +1,4 @@
 import AppKit
-import ImageIO
 import SwiftUI
 
 struct ZoomableImageView: NSViewRepresentable {
@@ -28,7 +27,7 @@ struct ZoomableImageView: NSViewRepresentable {
     private func update(_ scrollView: ImageScrollView, coordinator: Coordinator) {
         scrollView.drawsBackground = true
         scrollView.backgroundColor = .windowBackgroundColor
-        let hash = preview.data.hashValue ^ (preview.firstFrameOnly ? 1 : 0)
+        let hash = preview.data.hashValue ^ (preview.stillImage.map { ObjectIdentifier($0).hashValue } ?? 0)
         guard coordinator.lastHash != hash else { return }
         coordinator.lastHash = hash
         guard let image = makeImage() else { return }
@@ -39,10 +38,8 @@ struct ZoomableImageView: NSViewRepresentable {
     }
 
     private func makeImage() -> NSImage? {
-        if preview.firstFrameOnly,
-           let source = CGImageSourceCreateWithData(preview.data as CFData, nil),
-           let first = CGImageSourceCreateImageAtIndex(source, 0, nil) {
-            return NSImage(cgImage: first, size: NSSize(width: first.width, height: first.height))
+        if let still = preview.stillImage {
+            return NSImage(cgImage: still, size: preview.displaySize ?? NSSize(width: still.width, height: still.height))
         }
         return NSImage(data: preview.data)
     }

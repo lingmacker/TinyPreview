@@ -45,29 +45,57 @@ public enum ImagePreviewLoader {
 
         let frameCount = max(1, CGImageSourceGetCount(source))
         let frameBytes = multipliedWithoutOverflow(Int64(width), Int64(height), 4)
-        guard let frameBytes else { throw ImagePreviewError.memoryBudget }
-        let totalFramesBytes = multipliedWithoutOverflow(frameBytes, Int64(frameCount), 1)
         let fileBytes = Int64(data.count)
-        let firstFrameWorkingSet = fileBytes.addingReportingOverflow(frameBytes)
-        guard !firstFrameWorkingSet.overflow, firstFrameWorkingSet.partialValue <= budget.maximumWorkingBytes else {
-            throw ImagePreviewError.memoryBudget
-        }
-        let totalWorkingSet = totalFramesBytes.map { fileBytes.addingReportingOverflow($0) }
-        let firstFrameOnly = frameCount > 1 && (
-            totalWorkingSet == nil ||
-            totalWorkingSet!.overflow ||
-            totalWorkingSet!.partialValue > budget.maximumWorkingBytes
-        )
+        let availableBytes = budget.maximumWorkingBytes - fileBytes
+        guard availableBytes > 0 else { throw ImagePreviewError.memoryBudget }
 
-        guard CGImageSourceCreateImageAtIndex(source, 0, nil) != nil else {
+        if frameCount > 1,
+           let frameBytes,
+           let totalFramesBytes = multipliedWithoutOverflow(frameBytes, Int64(frameCount), 1),
+           totalFramesBytes <= availableBytes,
+           max(width, height) <= maximumDisplayDimension {
+            // Keep the encoded data so NSImageView can play every frame.
+            guard CGImageSourceCreateImageAtIndex(source, 0, nil) != nil else { throw ImagePreviewError.corrupt }
+            return ImagePreview(data: data, isSVG: false, firstFrameOnly: false)
+        }
+
+        // Decode the still (or first frame) off the main thread, shrinking it when the
+        // full-resolution bitmap would exceed the memory budget or any sensible display size.
+        let longestSide = Double(max(width, height))
+        var targetSide = min(longestSide, Double(maximumDisplayDimension))
+        if let frameBytes, frameBytes > availableBytes {
+            targetSide = min(targetSide, longestSide * (Double(availableBytes) / Double(frameBytes)).squareRoot())
+        } else if frameBytes == nil {
+            targetSide = min(targetSide, (Double(availableBytes) / 4).squareRoot())
+        }
+        let maximumPixelSize = Int(targetSide.rounded(.down))
+        guard maximumPixelSize >= 1 else { throw ImagePreviewError.memoryBudget }
+        let options: [CFString: Any] = [
+            kCGImageSourceCreateThumbnailFromImageAlways: true,
+            kCGImageSourceCreateThumbnailWithTransform: true,
+            kCGImageSourceShouldCacheImmediately: true,
+            kCGImageSourceThumbnailMaxPixelSize: maximumPixelSize
+        ]
+        guard let image = CGImageSourceCreateThumbnailAtIndex(source, 0, options as CFDictionary) else {
             throw ImagePreviewError.corrupt
         }
+        guard Int64(image.width) * Int64(image.height) * 4 <= availableBytes else {
+            throw ImagePreviewError.memoryBudget
+        }
+        // Report the original pixel dimensions so 100% zoom keeps its meaning after downsampling;
+        // swap them when the EXIF orientation rotated the decoded image by 90°.
+        let rotated = width != height && image.width != image.height && (image.width > image.height) != (width > height)
         return ImagePreview(
             data: data,
             isSVG: false,
-            firstFrameOnly: firstFrameOnly
+            firstFrameOnly: frameCount > 1,
+            stillImage: image,
+            displaySize: rotated ? CGSize(width: height, height: width) : CGSize(width: width, height: height),
+            isDownsampled: maximumPixelSize < Int(longestSide)
         )
     }
+
+    private static let maximumDisplayDimension = 8_192
 
     private static func integer(_ value: Any?) -> Int? {
         if let value = value as? NSNumber { return value.intValue }

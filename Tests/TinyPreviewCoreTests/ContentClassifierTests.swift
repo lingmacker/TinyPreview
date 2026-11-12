@@ -4,9 +4,7 @@ import XCTest
 
 final class ContentClassifierTests: XCTestCase {
     func testUnicodeTextDecoderAcceptsExtensionlessUTF8() {
-        let result = UnicodeTextDecoder.decode(Data("hello, 世界\n".utf8))
-        XCTAssertEqual(result?.0, "hello, 世界\n")
-        XCTAssertEqual(result?.1, .utf8)
+        XCTAssertEqual(UnicodeTextDecoder.decode(Data("hello, 世界\n".utf8)), "hello, 世界\n")
     }
 
     func testUnicodeTextDecoderRejectsNULAndExcessControls() {
@@ -60,6 +58,26 @@ final class ContentClassifierTests: XCTestCase {
         XCTAssertEqual(limits.sourceCodeBytes, 20 * 1_048_576)
         limits.set(0, for: .text)
         XCTAssertEqual(limits.textBytes, 1 * 1_048_576)
+    }
+
+    func testDetectsBuildFilesAndAdditionalLanguages() {
+        let cases: [(String, SourceLanguage)] = [
+            ("Dockerfile", .dockerfile), ("Dockerfile.dev", .dockerfile), ("Makefile", .makefile),
+            ("CMakeLists.txt", .cmake), ("init.lua", .lua), ("index.php", .php), ("main.dart", .dart),
+            ("App.scala", .scala), ("build.zig", .zig), ("api.proto", .protobuf), ("schema.graphql", .graphql),
+            ("setup.cfg", .ini), (".env.local", .ini), (".zprofile", .shell)
+        ]
+        for (name, language) in cases {
+            XCTAssertEqual(SourceLanguageDetector.detect(url: URL(fileURLWithPath: "/tmp/\(name)"), prefix: Data()), language, name)
+        }
+        XCTAssertEqual(SourceLanguageDetector.detect(url: URL(fileURLWithPath: "/tmp/run"), prefix: Data("#!/usr/bin/env lua\n".utf8)), .lua)
+    }
+
+    func testProcessingStopsAtDeadline() {
+        let source = String(repeating: "let value = 42 // note\n", count: 2_000)
+        XCTAssertNil(SyntaxHighlighter.highlight(source, language: .swift, darkMode: false, deadline: .distantPast))
+        XCTAssertNotNil(SyntaxHighlighter.highlight(source, language: .swift, darkMode: false, deadline: .distantFuture))
+        XCTAssertThrowsError(try StructuredPreview.json("[1, 2, 3]", deadline: .distantPast))
     }
 
     func testSyntaxHighlighterUsesDayAndNightPalettes() throws {

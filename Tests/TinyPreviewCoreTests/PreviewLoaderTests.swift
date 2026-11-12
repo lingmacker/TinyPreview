@@ -20,10 +20,11 @@ final class PreviewLoaderTests: XCTestCase {
         defer { try? FileManager.default.removeItem(at: root) }
 
         let text = "# config\nVALUE=你好\n"
-        for name in [
-            ".gitignore", ".gitattributes", ".gitmodules", ".env",
-            ".editorconfig", ".npmrc", ".bashrc", ".zshrc"
-        ] {
+        let expected: [String: SourceLanguage?] = [
+            ".gitignore": nil, ".gitattributes": nil, ".gitmodules": nil, ".env": .ini,
+            ".editorconfig": .ini, ".npmrc": .ini, ".bashrc": .shell, ".zshrc": .shell
+        ]
+        for (name, language) in expected {
             let url = root.appendingPathComponent(name)
             try Data(text.utf8).write(to: url)
 
@@ -32,7 +33,7 @@ final class PreviewLoaderTests: XCTestCase {
                 continue
             }
             XCTAssertEqual(preview.text, text, name)
-            XCTAssertNil(preview.language, name)
+            XCTAssertEqual(preview.language, language, name)
         }
     }
 
@@ -90,7 +91,6 @@ final class PreviewLoaderTests: XCTestCase {
         let preview = try ArchiveScanner.scan(url)
         XCTAssertEqual(preview.entries.map(\.name), ["src", "main.swift"])
         XCTAssertEqual(preview.entries.last?.depth, 1)
-        XCTAssertEqual(preview.knownBytes, 14)
     }
 
     func testSharedSettingsRoundTripAndReset() throws {

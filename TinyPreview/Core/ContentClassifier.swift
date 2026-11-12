@@ -143,7 +143,18 @@ public enum SourceLanguageDetector {
         "toml": .toml,
         "xml": .xml, "plist": .xml, "xhtml": .xml,
         "sql": .sql,
-        "md": .markdown, "markdown": .markdown, "mdown": .markdown
+        "md": .markdown, "markdown": .markdown, "mdown": .markdown,
+        "lua": .lua,
+        "php": .php, "phtml": .php,
+        "dart": .dart,
+        "scala": .scala, "sc": .scala,
+        "zig": .zig,
+        "proto": .protobuf,
+        "graphql": .graphql, "gql": .graphql,
+        "ini": .ini, "cfg": .ini, "conf": .ini, "properties": .ini,
+        "dockerfile": .dockerfile,
+        "mk": .makefile, "mak": .makefile,
+        "cmake": .cmake
     ]
 
     private static let knownNames: [String: SourceLanguage] = [
@@ -154,12 +165,20 @@ public enum SourceLanguageDetector {
         "Package.resolved": .json,
         "package.json": .json,
         "tsconfig.json": .json,
-        "Cargo.toml": .toml
+        "Cargo.toml": .toml,
+        "Dockerfile": .dockerfile, "Containerfile": .dockerfile,
+        "Makefile": .makefile, "makefile": .makefile, "GNUmakefile": .makefile,
+        "CMakeLists.txt": .cmake,
+        ".bashrc": .shell, ".bash_profile": .shell, ".bash_logout": .shell, ".profile": .shell,
+        ".zshrc": .shell, ".zprofile": .shell, ".zshenv": .shell, ".zlogin": .shell, ".zlogout": .shell,
+        ".env": .ini, ".editorconfig": .ini, ".gitconfig": .ini, ".npmrc": .ini
     ]
 
     public static func detect(url: URL, prefix: Data) -> SourceLanguage? {
         let name = url.lastPathComponent
         if let language = knownNames[name] { return language }
+        if name.hasPrefix("Dockerfile.") { return .dockerfile }
+        if name.hasPrefix(".env.") { return .ini }
         let ext = url.pathExtension.lowercased()
         if let language = extensions[ext] { return language }
 
@@ -171,35 +190,35 @@ public enum SourceLanguageDetector {
         if shebang.contains("python") { return .python }
         if shebang.contains("ruby") { return .ruby }
         if shebang.contains("node") || shebang.contains("deno") { return .javascript }
+        if shebang.contains("php") { return .php }
+        if shebang.contains("lua") { return .lua }
         if shebang.contains("bash") || shebang.contains("zsh") || shebang.contains("/sh") || shebang.contains("fish") { return .shell }
         return nil
     }
 }
 
 public enum UnicodeTextDecoder {
-    public static func decode(_ data: Data) -> (String, UnicodeTextEncoding)? {
-        let decoded: (String, UnicodeTextEncoding)?
+    public static func decode(_ data: Data) -> String? {
+        let decoded: String?
         if data.starts(with: [0x00, 0x00, 0xFE, 0xFF]) {
-            decoded = String(data: data, encoding: .utf32BigEndian).map { ($0, .utf32BigEndian) }
+            decoded = String(data: data, encoding: .utf32BigEndian)
         } else if data.starts(with: [0xFF, 0xFE, 0x00, 0x00]) {
-            decoded = String(data: data, encoding: .utf32LittleEndian).map { ($0, .utf32LittleEndian) }
+            decoded = String(data: data, encoding: .utf32LittleEndian)
         } else if data.starts(with: [0xFE, 0xFF]) {
-            decoded = String(data: data, encoding: .utf16BigEndian).map { ($0, .utf16BigEndian) }
+            decoded = String(data: data, encoding: .utf16BigEndian)
         } else if data.starts(with: [0xFF, 0xFE]) {
-            decoded = String(data: data, encoding: .utf16LittleEndian).map { ($0, .utf16LittleEndian) }
+            decoded = String(data: data, encoding: .utf16LittleEndian)
         } else {
             let payload = data.starts(with: [0xEF, 0xBB, 0xBF]) ? data.dropFirst(3) : data[...]
-            decoded = String(data: payload, encoding: .utf8).map { ($0, .utf8) }
+            decoded = String(data: payload, encoding: .utf8)
         }
-        guard let pair = decoded else { return nil }
-        var text = pair.0
-        let encoding = pair.1
+        guard var text = decoded else { return nil }
         if text.first == "\u{FEFF}" { text.removeFirst() }
         guard isPlainText(text) else { return nil }
-        return (text, encoding)
+        return text
     }
 
-    public static func decodePrefix(_ data: Data) -> (String, UnicodeTextEncoding)? {
+    public static func decodePrefix(_ data: Data) -> String? {
         // A bounded read may end inside a Unicode scalar or UTF-16 surrogate pair.
         let encoding: String.Encoding
         if data.starts(with: [0x00, 0x00, 0xFE, 0xFF]) { encoding = .utf32BigEndian }

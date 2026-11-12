@@ -2,7 +2,6 @@ import Darwin
 import Foundation
 import UniformTypeIdentifiers
 
-private let archiveOK: Int32 = 0
 private let archiveEOF: Int32 = 1
 private let archiveWarn: Int32 = -20
 private let archiveIfmt: UInt32 = 0xF000
@@ -128,15 +127,13 @@ public enum ArchiveScanner {
         let root = Node(name: "")
         for raw in rawEntries { insert(raw, into: root) }
         var flattened: [ContainerEntry] = []
-        var knownBytes: Int64 = 0
-        flatten(root, depth: 0, output: &flattened, knownBytes: &knownBytes, budget: budget)
+        flatten(root, depth: 0, output: &flattened, budget: budget)
         if flattened.count >= budget.maximumEntries && stopReason == nil {
             stopReason = "已达到 \(budget.maximumEntries.formatted()) 项安全上限"
         }
         return ContainerPreview(
             title: url.lastPathComponent,
             entries: Array(flattened.prefix(budget.maximumEntries)),
-            knownBytes: knownBytes,
             isComplete: stopReason == nil,
             incompleteReason: stopReason
         )
@@ -163,7 +160,6 @@ public enum ArchiveScanner {
         _ node: Node,
         depth: Int,
         output: inout [ContainerEntry],
-        knownBytes: inout Int64,
         budget: SafetyBudget
     ) {
         let children = node.children.values.sorted {
@@ -184,7 +180,6 @@ public enum ArchiveScanner {
             } else {
                 typeLabel = UTType(filenameExtension: URL(fileURLWithPath: child.name).pathExtension)?.localizedDescription ?? "文件"
             }
-            if let size = child.size { knownBytes += size }
             output.append(ContainerEntry(
                 id: output.count,
                 depth: depth,
@@ -196,7 +191,7 @@ public enum ArchiveScanner {
                 warning: child.warning
             ))
             if child.isDirectory && !child.isLink && !isHidden && !isPackage {
-                flatten(child, depth: depth + 1, output: &output, knownBytes: &knownBytes, budget: budget)
+                flatten(child, depth: depth + 1, output: &output, budget: budget)
             }
         }
     }

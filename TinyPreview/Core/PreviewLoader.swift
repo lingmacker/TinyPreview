@@ -130,17 +130,18 @@ public enum PreviewLoader {
                 ))
             }
             let payload = Data(data.prefix(cap))
-            guard let (text, encoding) = truncated ? UnicodeTextDecoder.decodePrefix(payload) : UnicodeTextDecoder.decode(payload) else {
+            guard let text = truncated ? UnicodeTextDecoder.decodePrefix(payload) : UnicodeTextDecoder.decode(payload) else {
                 return .message(unsupported(url, systemType: classification.systemType, detail: "内容不是受支持的 Unicode 纯文本。"))
             }
             var formatted: String?
             var notice = truncated ? "仅显示开头最多 1 MB 的内容；文件已截断，不代表完整内容。" : nil
             if !truncated, language == .json {
-                do { formatted = try StructuredPreview.json(text, maximumBytes: Int(min(16 * 1_048_576, budget.maximumWorkingBytes / 4))) }
+                do { formatted = try StructuredPreview.json(text, maximumBytes: Int(min(16 * 1_048_576, budget.maximumWorkingBytes / 4)),
+                                                       deadline: started.addingTimeInterval(budget.maximumDuration)) }
                 catch { notice = "JSON 格式化不可用：语法无效或超过安全预算；显示原文。" }
             }
             guard !timedOut(started, budget: budget) else { return .message(timeoutRefusal(url, category: category)) }
-            return .text(TextPreview(text: text, encoding: encoding, language: language, formattedText: formatted, notice: notice, isTruncated: truncated))
+            return .text(TextPreview(text: text, language: language, formattedText: formatted, notice: notice, isTruncated: truncated))
         } catch {
             return .message(corrupt(url, systemType: classification.systemType, detail: error.localizedDescription))
         }
@@ -163,13 +164,14 @@ public enum PreviewLoader {
             let original = UnicodeTextDecoder.decode(data)
             let preview: TextPreview
             do {
-                let xml = try StructuredPreview.propertyList(data, maximumBytes: Int(min(16 * 1_048_576, max(0, budget.maximumWorkingBytes / 4))))
-                preview = TextPreview(text: original?.0 ?? xml, encoding: original?.1 ?? .utf8, language: .xml,
+                let xml = try StructuredPreview.propertyList(data, maximumBytes: Int(min(16 * 1_048_576, max(0, budget.maximumWorkingBytes / 4))),
+                                                             deadline: started.addingTimeInterval(budget.maximumDuration))
+                preview = TextPreview(text: original ?? xml, language: .xml,
                                       formattedText: original == nil ? nil : xml,
                                       notice: binary ? "二进制 plist：以只读 XML 展示，不是原始二进制内容。" : nil)
             } catch {
                 guard let original else { return .message(corrupt(url, systemType: classification.systemType, detail: "plist 无法解析：\(error.localizedDescription)")) }
-                preview = TextPreview(text: original.0, encoding: original.1, language: .xml, notice: "plist 解析失败；显示原文。")
+                preview = TextPreview(text: original, language: .xml, notice: "plist 解析失败；显示原文。")
             }
             guard !timedOut(started, budget: budget) else { return .message(timeoutRefusal(url, category: .sourceCode)) }
             return .text(preview)
