@@ -60,7 +60,7 @@ To check whether a preview comes from TinyPreview, keep the preview window open 
 
 ## Install and Use
 
-1. Download the DMG from [GitHub Releases](https://github.com/lingmacker/TinyPreview/releases/latest) and drag TinyPreview into Applications, or run `make install` from source.
+1. Download and extract the ZIP from [GitHub Releases](https://github.com/lingmacker/TinyPreview/releases/latest) and move TinyPreview into Applications, or run `make install` from source.
 2. Launch TinyPreview once so macOS registers the preview extension, and adjust preview size limits if needed.
 3. Select a file or folder in Finder and press Space.
 
@@ -125,7 +125,7 @@ The interaction checks cover text display, automatic Markdown/JSON handling, the
 
 ## Releases
 
-Pushing a `v<major>.<minor>.<patch>` tag triggers `.github/workflows/release.yml`, which builds an Apple Silicon Release app with Xcode 27 and uploads a DMG and SHA-256 checksum file to the corresponding GitHub Release.
+Pushing a `v<major>.<minor>.<patch>` tag triggers `.github/workflows/release.yml`, which builds an Apple Silicon Release app with Xcode 27 and uploads a ZIP archive and SHA-256 checksum file to the corresponding GitHub Release.
 
 ```sh
 git tag v1.0.0

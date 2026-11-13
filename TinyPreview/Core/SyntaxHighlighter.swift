@@ -60,41 +60,64 @@ public enum SyntaxHighlighter {
         let fullRange = NSRange(text.startIndex..., in: text)
         var protected = IndexSet()
 
-        var passes: [(pattern: String, color: NSColor, protects: Bool)] = [
-            (commentPattern(for: language), theme.comment, true),
-            (stringPattern(for: language), theme.string, true),
-            (numberPattern, theme.number, false)
-        ]
+        var passes: [HighlightPass]
+        if language == .yaml {
+            passes = [
+                HighlightPass(
+                    #"(?<=^|[\s:\-\[{,])("(?:\\.|[^"\\\n])*"|'(?:''|[^'\n])*')|((?m)(?:^|(?<=\s))#.*$)"#,
+                    captures: [(1, theme.string), (2, theme.comment)],
+                    protects: true
+                ),
+                HighlightPass(numberPattern, color: theme.number)
+            ]
+        } else {
+            passes = [
+                HighlightPass(commentPattern(for: language), color: theme.comment, protects: true),
+                HighlightPass(stringPattern(for: language), color: theme.string, protects: true),
+                HighlightPass(numberPattern, color: theme.number)
+            ]
+        }
         let keywords = keywordList(for: language)
         if !keywords.isEmpty {
             let escaped = keywords.map(NSRegularExpression.escapedPattern(for:)).joined(separator: "|")
-            passes.append(("\\b(?:\(escaped))\\b", theme.keyword, false))
+            passes.append(HighlightPass("\\b(?:\(escaped))\\b", color: theme.keyword))
         }
         let types = typeList(for: language)
         if !types.isEmpty {
             let escaped = types.map(NSRegularExpression.escapedPattern(for:)).joined(separator: "|")
-            passes.append(("\\b(?:\(escaped))\\b", theme.type, false))
+            passes.append(HighlightPass("\\b(?:\(escaped))\\b", color: theme.type))
         }
         switch language {
         case .html, .xml:
-            passes.append((#"(?<=</?)[A-Za-z_][A-Za-z0-9_.:-]*"#, theme.keyword, false))
+            passes.append(HighlightPass(#"(?<=</?)[A-Za-z_][A-Za-z0-9_.:-]*"#, color: theme.keyword))
         case .markdown:
-            passes.append((#"(?m)^(?:#{1,6}|>|[-*+]\s|\d+\.\s)"#, theme.keyword, false))
+            passes.append(HighlightPass(#"(?m)^(?:#{1,6}|>|[-*+]\s|\d+\.\s)"#, color: theme.keyword))
         case .ini:
-            passes.append((#"(?m)^\s*\[[^\]\n]*\]"#, theme.type, false))
-            passes.append((#"(?m)^\s*[^\s=:;#\[][^=:\n]*?(?=\s*[=:])"#, theme.keyword, false))
+            passes.append(HighlightPass(#"(?m)^\s*\[[^\]\n]*\]"#, color: theme.type))
+            passes.append(HighlightPass(#"(?m)^\s*[^\s=:;#\[][^=:\n]*?(?=\s*[=:])"#, color: theme.keyword))
+        case .yaml:
+            passes.append(HighlightPass(#"(?m)^%(?:YAML|TAG)\b[^\n]*"#, color: theme.keyword))
+            passes.append(HighlightPass(#"(?m)^(?:---|\.\.\.)(?=[ \t]*(?:#.*)?$)"#, color: theme.keyword))
+            passes.append(HighlightPass(#"(?<=:\s|[-\s\[,])~(?=\s|$)"#, color: theme.keyword))
+            passes.append(HighlightPass(#"(?<=:[ \t])[|>][+-]?(?=[ \t]*(?:#.*)?$)"#, color: theme.keyword))
+            passes.append(HighlightPass(#"(?<=^|[\s\[{,])(?:&|\*)[A-Za-z_][A-Za-z0-9_-]*"#, color: theme.type))
+            passes.append(HighlightPass(#"(?<=^|[\s\[{,])!!?[A-Za-z0-9_.:/-]+"#, color: theme.type))
+            passes.append(HighlightPass(
+                #"(?m)^[ \t]*+(?>-[ \t]++)*+([^\s#\[\]{},'"?:*!&|>%@`][^:\n]*?)(?=[ \t]*+:(?:\s|$))"#,
+                captures: [(1, theme.type)]
+            ))
         case .makefile:
-            passes.append((#"\$[({][^)}\n]*[)}]"#, theme.type, false))
-            passes.append((#"(?m)^[^\s:#=][^:#=\n]*(?=\s*::?(?!=))"#, theme.keyword, false))
+            passes.append(HighlightPass(#"\$[({][^)}\n]*[)}]"#, color: theme.type))
+            passes.append(HighlightPass(#"(?m)^[^\s:#=][^:#=\n]*(?=\s*::?(?!=))"#, color: theme.keyword))
         case .cmake:
-            passes.append((#"\$\{[^}\n]*\}"#, theme.type, false))
+            passes.append(HighlightPass(#"\$\{[^}\n]*\}"#, color: theme.type))
         default:
             break
         }
 
         for pass in passes {
-            guard apply(pattern: pass.pattern, color: pass.color, to: result, in: fullRange,
-                        protected: &protected, protectsRange: pass.protects, deadline: deadline) else { return nil }
+            guard apply(pass: pass, to: result, in: fullRange,
+                        protected: &protected, deadline: deadline) else { return nil }
         }
         return result
     }
@@ -134,19 +157,35 @@ public enum SyntaxHighlighter {
     }
 
 
+    private struct HighlightPass {
+        let pattern: String
+        let captures: [(group: Int, color: NSColor)]
+        let protects: Bool
+
+        init(_ pattern: String, color: NSColor, protects: Bool = false) {
+            self.pattern = pattern
+            self.captures = [(0, color)]
+            self.protects = protects
+        }
+
+        init(_ pattern: String, captures: [(Int, NSColor)], protects: Bool = false) {
+            self.pattern = pattern
+            self.captures = captures
+            self.protects = protects
+        }
+    }
+
     private static let regexCache = RegexCache()
 
     /// Returns false when the deadline passes before every match is processed.
     private static func apply(
-        pattern: String,
-        color: NSColor,
+        pass: HighlightPass,
         to result: NSMutableAttributedString,
         in fullRange: NSRange,
         protected: inout IndexSet,
-        protectsRange: Bool,
         deadline: Date
     ) -> Bool {
-        guard let regex = regexCache.regex(for: pattern) else { return true }
+        guard let regex = regexCache.regex(for: pass.pattern) else { return true }
         var finished = true
         var processed = 0
         var collected = protected
@@ -157,11 +196,15 @@ public enum SyntaxHighlighter {
                 stop.pointee = true
                 return
             }
-            guard let range = match?.range, range.length > 0 else { return }
-            let indexes = range.location ..< range.location + range.length
-            guard !collected.intersects(integersIn: indexes) else { return }
-            result.addAttribute(.foregroundColor, value: color, range: range)
-            if protectsRange { collected.insert(integersIn: indexes) }
+            guard let match else { return }
+            for capture in pass.captures {
+                let range = match.range(at: capture.group)
+                guard range.location != NSNotFound, range.length > 0 else { continue }
+                let indexes = range.location ..< range.location + range.length
+                guard !collected.intersects(integersIn: indexes) else { continue }
+                result.addAttribute(.foregroundColor, value: capture.color, range: range)
+                if pass.protects { collected.insert(integersIn: indexes) }
+            }
         }
         protected = collected
         return finished && Date() <= deadline
@@ -185,7 +228,9 @@ public enum SyntaxHighlighter {
 
     private static func commentPattern(for language: SourceLanguage) -> String {
         switch language {
-        case .python, .ruby, .shell, .yaml, .toml, .graphql, .dockerfile, .makefile, .cmake:
+        case .yaml:
+            #"(?m)(?:^|(?<=\s))#.*$"#
+        case .python, .ruby, .shell, .toml, .graphql, .dockerfile, .makefile, .cmake:
             #"(?m)#.*$"#
         case .ini:
             #"(?m)^\s*[;#].*$"#
@@ -212,6 +257,8 @@ public enum SyntaxHighlighter {
             #"\"(?:\\.|[^\"\\])*\"|'[^']*'"#
         case .ini:
             #"\"(?:\\.|[^\"\\\n])*\"|'[^'\n]*'"#
+        case .yaml:
+            #"(?<=^|[\s:\-\[{,])(?:\"(?:\\.|[^\"\\\n])*\"|'(?:''|[^'\n])*')"#
         default:
             #"\"(?:\\.|[^\"\\])*\"|'(?:\\.|[^'\\])*'|`(?:\\.|[^`\\])*`"#
         }
@@ -242,7 +289,7 @@ public enum SyntaxHighlighter {
         case .json:
             ["false", "null", "true"]
         case .yaml:
-            ["false", "null", "true", "yes", "no"]
+            ["false", "False", "FALSE", "null", "Null", "NULL", "true", "True", "TRUE", "yes", "Yes", "YES", "no", "No", "NO", "on", "On", "ON", "off", "Off", "OFF"]
         case .toml:
             ["false", "true"]
         case .sql:

@@ -171,7 +171,8 @@ public enum SourceLanguageDetector {
         "CMakeLists.txt": .cmake,
         ".bashrc": .shell, ".bash_profile": .shell, ".bash_logout": .shell, ".profile": .shell,
         ".zshrc": .shell, ".zprofile": .shell, ".zshenv": .shell, ".zlogin": .shell, ".zlogout": .shell,
-        ".env": .ini, ".editorconfig": .ini, ".gitconfig": .ini, ".npmrc": .ini
+        ".env": .ini, ".editorconfig": .ini, ".gitconfig": .ini, ".npmrc": .ini,
+        ".clang-format": .yaml, ".clang-tidy": .yaml, ".yamllint": .yaml
     ]
 
     public static func detect(url: URL, prefix: Data) -> SourceLanguage? {

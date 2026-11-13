@@ -125,6 +125,32 @@ final class PreviewLoaderTests: XCTestCase {
         XCTAssertFalse(preview.wrapsLines)
     }
 
+    func testYAMLAndYMLFilesLoadAsHighlightedSource() throws {
+        let yamlText = "name: TinyPreview\nenabled: true\ncount: 3\n"
+        for ext in ["yaml", "yml", "YAML", "YML"] {
+            let url = temporaryURL(extension: ext)
+            try Data(yamlText.utf8).write(to: url)
+            defer { try? FileManager.default.removeItem(at: url) }
+
+            XCTAssertEqual(try ContentClassifier.classify(url).content, .source(.yaml), ext)
+            guard case .text(let preview) = PreviewLoader.load(url) else {
+                XCTFail("Expected a YAML text preview for .\(ext)")
+                continue
+            }
+            XCTAssertEqual(preview.text, yamlText, ext)
+            XCTAssertEqual(preview.language, .yaml, ext)
+            XCTAssertFalse(preview.wrapsLines, ext)
+        }
+
+        let binaryURL = temporaryURL(extension: "yml")
+        try Data([0x61, 0x3A, 0x20, 0x00]).write(to: binaryURL)
+        defer { try? FileManager.default.removeItem(at: binaryURL) }
+        guard case .message(let message) = PreviewLoader.load(binaryURL) else {
+            return XCTFail("Expected binary .yml content to be unsupported")
+        }
+        XCTAssertEqual(message.kind, .unsupported)
+    }
+
     private func temporaryURL(extension ext: String) -> URL {
         FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString).appendingPathExtension(ext)
     }

@@ -60,7 +60,7 @@ macOS 会用 Quick Look 内置查看器直接显示部分常见类型，此时�
 
 ## 安装与使用
 
-1. 从 [GitHub Releases](https://github.com/lingmacker/TinyPreview/releases/latest) 下载 DMG，将 TinyPreview 拖入“应用程序”文件夹；或从源码执行 `make install`。
+1. 从 [GitHub Releases](https://github.com/lingmacker/TinyPreview/releases/latest) 下载 ZIP 并解压，将 TinyPreview 移入“应用程序”文件夹；或从源码执行 `make install`。
 2. 启动一次 TinyPreview，让系统注册预览扩展，并按需调整预览大小上限。
 3. 在 Finder 中选中文件或文件夹，按空格。
 
@@ -125,7 +125,7 @@ make test-ui  # 本地 AppKit/SwiftUI 交互检查，需要图形会话
 
 ## 发布
 
-推送 `v<主版本>.<次版本>.<修订版本>` 标签会触发 `.github/workflows/release.yml`，使用 Xcode 27 构建 Apple Silicon Release App，并将 DMG 和 SHA-256 校验文件上传到对应的 GitHub Release。
+推送 `v<主版本>.<次版本>.<修订版本>` 标签会触发 `.github/workflows/release.yml`，使用 Xcode 27 构建 Apple Silicon Release App，并将 ZIP 压缩包和 SHA-256 校验文件上传到对应的 GitHub Release。
 
 ```sh
 git tag v1.0.0

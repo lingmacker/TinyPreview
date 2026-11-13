@@ -65,7 +65,9 @@ final class ContentClassifierTests: XCTestCase {
             ("Dockerfile", .dockerfile), ("Dockerfile.dev", .dockerfile), ("Makefile", .makefile),
             ("CMakeLists.txt", .cmake), ("init.lua", .lua), ("index.php", .php), ("main.dart", .dart),
             ("App.scala", .scala), ("build.zig", .zig), ("api.proto", .protobuf), ("schema.graphql", .graphql),
-            ("setup.cfg", .ini), (".env.local", .ini), (".zprofile", .shell)
+            ("setup.cfg", .ini), (".env.local", .ini), (".zprofile", .shell),
+            ("config.yaml", .yaml), ("workflow.yml", .yaml), ("CONFIG.YML", .yaml),
+            (".clang-format", .yaml), (".clang-tidy", .yaml), (".yamllint", .yaml)
         ]
         for (name, language) in cases {
             XCTAssertEqual(SourceLanguageDetector.detect(url: URL(fileURLWithPath: "/tmp/\(name)"), prefix: Data()), language, name)
@@ -102,6 +104,52 @@ final class ContentClassifierTests: XCTestCase {
         let light = SyntaxHighlighter.highlight(source, language: .swift, darkMode: false)
         let keyword = (light.attribute(.foregroundColor, at: (light.string as NSString).range(of: "let").location, effectiveRange: nil) as? NSColor)
         XCTAssertTrue(keyword?.isEqual(NSColor(hex: 0x0000FF)) == true)
+    }
+
+    func testSyntaxHighlighterHighlightsYAMLStructuresWithoutMisreadingHashesOrApostrophes() throws {
+        let source = """
+        ---
+        %YAML 1.2
+        # top comment
+        on: # inline comment
+          - name: "hello # world"
+            color: "#FF00FF"
+            note: 'it''s \\ fine'
+            title: John's Config
+            url: https://example.com#section
+            enabled: true
+            count: 42
+            defaults: &base
+              <<: *base
+              tag: !!str value
+        """
+        let rendered = SyntaxHighlighter.highlight(source, language: .yaml, darkMode: true)
+        let string = rendered.string as NSString
+
+        func color(of token: String) throws -> NSColor {
+            let location = string.range(of: token).location
+            XCTAssertNotEqual(location, NSNotFound, token)
+            return try XCTUnwrap(
+                rendered.attribute(.foregroundColor, at: location, effectiveRange: nil) as? NSColor
+            )
+        }
+
+        XCTAssertTrue(try color(of: "---").isEqual(NSColor(hex: 0xC678DD)))
+        XCTAssertTrue(try color(of: "%YAML 1.2").isEqual(NSColor(hex: 0xC678DD)))
+        XCTAssertTrue(try color(of: "# top comment").isEqual(NSColor(hex: 0x5C6370)))
+        XCTAssertTrue(try color(of: "# inline comment").isEqual(NSColor(hex: 0x5C6370)))
+        XCTAssertTrue(try color(of: "on").isEqual(NSColor(hex: 0xE5C07B)))
+        XCTAssertTrue(try color(of: "name").isEqual(NSColor(hex: 0xE5C07B)))
+        XCTAssertTrue(try color(of: "\"hello # world\"").isEqual(NSColor(hex: 0x98C379)))
+        XCTAssertTrue(try color(of: "\"#FF00FF\"").isEqual(NSColor(hex: 0x98C379)))
+        XCTAssertTrue(try color(of: "'it''s \\ fine'").isEqual(NSColor(hex: 0x98C379)))
+        XCTAssertTrue(try color(of: "John's Config").isEqual(NSColor(hex: 0xABB2BF)))
+        XCTAssertTrue(try color(of: "#section").isEqual(NSColor(hex: 0xABB2BF)))
+        XCTAssertTrue(try color(of: "true").isEqual(NSColor(hex: 0xC678DD)))
+        XCTAssertTrue(try color(of: "42").isEqual(NSColor(hex: 0xD19A66)))
+        XCTAssertTrue(try color(of: "&base").isEqual(NSColor(hex: 0xE5C07B)))
+        XCTAssertTrue(try color(of: "*base").isEqual(NSColor(hex: 0xE5C07B)))
+        XCTAssertTrue(try color(of: "!!str").isEqual(NSColor(hex: 0xE5C07B)))
     }
 
     func testMarkdownRendererProducesStyledDocument() throws {

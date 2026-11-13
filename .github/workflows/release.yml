@@ -106,21 +106,13 @@ jobs:
         run: |
           set -euo pipefail
           app="$DERIVED_DATA/Build/Products/Release/TinyPreview.app"
-          dmg="TinyPreview-$VERSION-macos-arm64.dmg"
-          dmg_root="$RUNNER_TEMP/dmg-root"
-          mkdir -p "$DIST_DIR" "$dmg_root"
-          ditto "$app" "$dmg_root/TinyPreview.app"
-          ln -s /Applications "$dmg_root/Applications"
-          hdiutil create \
-            -volname TinyPreview \
-            -srcfolder "$dmg_root" \
-            -ov \
-            -format UDZO \
-            "$DIST_DIR/$dmg"
+          zip="TinyPreview-$VERSION-macos-arm64.zip"
+          mkdir -p "$DIST_DIR"
+          ditto -c -k --sequesterRsrc --keepParent "$app" "$DIST_DIR/$zip"
           cd "$DIST_DIR"
-          shasum -a 256 "$dmg" > "$dmg.sha256"
-          echo "archive=$DIST_DIR/$dmg" >> "$GITHUB_OUTPUT"
-          echo "checksum=$DIST_DIR/$dmg.sha256" >> "$GITHUB_OUTPUT"
+          shasum -a 256 "$zip" > "$zip.sha256"
+          echo "archive=$DIST_DIR/$zip" >> "$GITHUB_OUTPUT"
+          echo "checksum=$DIST_DIR/$zip.sha256" >> "$GITHUB_OUTPUT"
 
       - name: Upload workflow artifact
         uses: actions/upload-artifact@v4

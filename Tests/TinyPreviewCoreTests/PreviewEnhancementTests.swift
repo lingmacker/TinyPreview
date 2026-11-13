@@ -74,6 +74,16 @@ final class PreviewEnhancementTests: XCTestCase {
         XCTAssertNotEqual(number.location, NSNotFound)
         XCTAssertNotEqual(value.attribute(.foregroundColor, at: keyword.location, effectiveRange: nil) as? NSColor,
                           value.attribute(.foregroundColor, at: number.location, effectiveRange: nil) as? NSColor)
+
+        for fence in ["yaml", "yml"] {
+            let yaml = try MarkdownRenderer.render("```\(fence)\nname: TinyPreview\nenabled: true\n```", darkMode: false)
+            let key = (yaml.string as NSString).range(of: "name")
+            let bool = (yaml.string as NSString).range(of: "true")
+            XCTAssertNotEqual(key.location, NSNotFound, fence)
+            XCTAssertNotEqual(bool.location, NSNotFound, fence)
+            XCTAssertNotEqual(yaml.attribute(.foregroundColor, at: key.location, effectiveRange: nil) as? NSColor,
+                              yaml.attribute(.foregroundColor, at: bool.location, effectiveRange: nil) as? NSColor, fence)
+        }
     }
 
     func testContainerListingPreservesScanOrderPathsAndHiddenEntries() {
